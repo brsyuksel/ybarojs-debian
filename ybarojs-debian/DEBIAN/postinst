@@ -50,7 +50,7 @@ case "$1" in
         echo "postinst: rebuilding system font cache..."
         fc-cache -f || true
 
-        # Prompt for username to add to sudo group and configure PS1
+        # Prompt for username to add to sudo group
         echo ""
         echo "postinst: ==============================================="
         echo "postinst: Optional: Add a user to the sudo group"
@@ -95,47 +95,6 @@ case "$1" in
 
         echo "postinst: ==============================================="
         echo ""
-
-        # Add PS1 configuration to user's .bashrc if username was provided
-        if [ -n "$SUDO_USERNAME" ]; then
-            echo ""
-            echo "postinst: ==============================================="
-            echo "postinst: Configuring PS1 prompt for user '$SUDO_USERNAME'"
-            echo "postinst: ==============================================="
-
-            USER_HOME="$(getent passwd "$SUDO_USERNAME" | cut -d: -f6)"
-            BASHRC_FILE="$USER_HOME/.bashrc"
-
-            # Check if user home directory exists
-            if [ -d "$USER_HOME" ]; then
-                # Create .bashrc if it doesn't exist
-                if [ ! -f "$BASHRC_FILE" ]; then
-                    echo "postinst: Creating $BASHRC_FILE..."
-                    touch "$BASHRC_FILE"
-                    chown "$SUDO_USERNAME:$SUDO_USERNAME" "$BASHRC_FILE"
-                fi
-
-                # The PS1 line to add
-                PS1_LINE="export PS1='\\[\\e[1;32m\\]\\u@\\h\\[\\e[m\\]:\\[\\e[1;34m\\]\\w\\[\\e[m\\] [\\[\\e[1;33m\\]\$?\\[\\e[m\\]]\\$ '""
-
-                # Check if our PS1 line is already present
-                if ! grep -qF "PS1='\[\e[1;32m\]\u@\h" "$BASHRC_FILE" 2>/dev/null; then
-                    echo "postinst: Adding PS1 configuration to $BASHRC_FILE..."
-                    echo "" >> "$BASHRC_FILE"
-                    echo "# ybarojs-debian PS1 prompt configuration" >> "$BASHRC_FILE"
-                    echo "$PS1_LINE" >> "$BASHRC_FILE"
-                    chown "$SUDO_USERNAME:$SUDO_USERNAME" "$BASHRC_FILE"
-                    echo "postinst: PS1 configuration added to $BASHRC_FILE"
-                else
-                    echo "postinst: PS1 configuration already present in $BASHRC_FILE"
-                fi
-            else
-                echo "postinst: WARNING: Home directory '$USER_HOME' does not exist. Skipping PS1 configuration."
-            fi
-
-            echo "postinst: ==============================================="
-            echo ""
-        fi
 
         # Add _greetd user to video, render, and input groups for GPU/input access
         echo ""
