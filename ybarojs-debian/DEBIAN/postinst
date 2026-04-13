@@ -118,6 +118,24 @@ case "$1" in
 
         echo "postinst: ==============================================="
         echo ""
+
+        # Show help message for custom PS1 prompt
+        echo ""
+        echo "=========================================="
+        echo "  Optional: Enable Colored Bash Prompt"
+        echo "=========================================="
+        echo ""
+        echo "To add a beautiful colored prompt to your terminal, run:"
+        echo ""
+        echo '  echo "export PS1='"'"'\[\e[1;32m\]\u@\h\[\e[m\]:\[\e[1;34m\]\w\[\e[m\] [\[\e[1;33m\]\$?\[\e[m\]]\$ '"'"'" >> ~/.bashrc'
+        echo ""
+        echo "This will give you:"
+        echo "  🟢 Green: username@hostname"
+        echo "  🔵 Blue: current directory"
+        echo "  🟡 Yellow: exit code of last command"
+        echo ""
+        echo "Then run: source ~/.bashrc"
+        echo ""
         ;;
 esac
 
