@@ -17,6 +17,8 @@ A Debian meta-package providing a complete Wayland desktop environment based on 
 - **Interactive Setup** — User sudo configuration prompt during installation
 - **Display Manager Setup** — `_greetd` user automatically added to `video`, `render`, and `input` groups for hardware access
 - **Git** — Version control system (included as dependency)
+- **Wireless Networking** — iwd wireless daemon with automatic service enable
+- **WiFi Management** — impala TUI for managing wireless networks (downloaded during install)
 - **Optional Colored Prompt** — Post-installation help message to add beautiful colored PS1 to your terminal
 
 ## Dependencies
@@ -24,6 +26,7 @@ A Debian meta-package providing a complete Wayland desktop environment based on 
 The following packages are automatically installed:
 
 - `git` — Version control system
+- `iwd` — Wireless networking daemon
 - `sudo` — User privilege escalation
 - `sway` — Tiling Wayland compositor
 - `waybar` — Status bar
