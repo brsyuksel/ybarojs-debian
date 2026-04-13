@@ -118,6 +118,22 @@ case "$1" in
 
         echo "postinst: ==============================================="
         echo ""
+
+        # Add ybarojs-prompt.sh sourcing to /etc/bash.bashrc if not already present
+        BASHRC_LINE='[ -f /etc/profile.d/ybarojs-prompt.sh ] && . /etc/profile.d/ybarojs-prompt.sh'
+        if [ -f /etc/bash.bashrc ]; then
+            if ! grep -qF "$BASHRC_LINE" /etc/bash.bashrc; then
+                echo "postinst: Adding ybarojs-prompt.sh sourcing to /etc/bash.bashrc..."
+                echo "" >> /etc/bash.bashrc
+                echo "# Source ybarojs-debian prompt configuration" >> /etc/bash.bashrc
+                echo "$BASHRC_LINE" >> /etc/bash.bashrc
+                echo "postinst: /etc/bash.bashrc updated."
+            else
+                echo "postinst: /etc/bash.bashrc already contains ybarojs-prompt.sh sourcing."
+            fi
+        else
+            echo "postinst: WARNING: /etc/bash.bashrc not found. Prompt may not work in all shells."
+        fi
         ;;
 esac
 
