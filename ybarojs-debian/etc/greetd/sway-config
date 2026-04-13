@@ -1,3 +1,9 @@
+# Make wlgreet floating and centered
+for_window [app_id="wlgreet"] floating enable, move position center, resize set 800 350, border pixel 2
+
+# Disable default sway bindings that might interfere
+floating_modifier Mod4
+
 exec "/usr/sbin/wlgreet; swaymsg exit"
 
 bindsym Mod4+shift+e exec swaynag \
