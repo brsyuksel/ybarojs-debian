@@ -50,6 +50,60 @@ case "$1" in
         echo "postinst: rebuilding system font cache..."
         fc-cache -f || true
 
+        # Download and install impala WiFi management tool
+        echo ""
+        echo "postinst: ==============================================="
+        echo "postinst: Installing impala WiFi management tool"
+        echo "postinst: ==============================================="
+
+        IMPALA_DIR="/usr/local/bin"
+        IMPALA_BIN="${IMPALA_DIR}/impala"
+        IMPALA_API_URL="https://api.github.com/repos/pythops/impala/releases/latest"
+
+        if [ -f "$IMPALA_BIN" ]; then
+            echo "postinst: impala already installed, skipping download."
+        else
+            if command -v wget >/dev/null 2>&1 || command -v curl >/dev/null 2>&1; then
+                echo "postinst: Downloading latest impala release..."
+                
+                # Get download URL from GitHub API
+                if command -v curl >/dev/null 2>&1; then
+                    IMPALA_URL=$(curl -sL "$IMPALA_API_URL" | grep -o '"browser_download_url": "[^"]*x86_64-unknown-linux-musl"' | head -n 1 | cut -d'"' -f4)
+                else
+                    IMPALA_URL=$(wget -qO- "$IMPALA_API_URL" | grep -o '"browser_download_url": "[^"]*x86_64-unknown-linux-musl"' | head -n 1 | cut -d'"' -f4)
+                fi
+
+                if [ -n "$IMPALA_URL" ]; then
+                    mkdir -p "$IMPALA_DIR"
+                    
+                    if command -v curl >/dev/null 2>&1; then
+                        curl -sL "$IMPALA_URL" -o "$IMPALA_BIN" 2>/dev/null || true
+                    else
+                        wget -q "$IMPALA_URL" -O "$IMPALA_BIN" 2>/dev/null || true
+                    fi
+
+                    if [ -f "$IMPALA_BIN" ] && [ -s "$IMPALA_BIN" ]; then
+                        chmod +x "$IMPALA_BIN"
+                        echo "postinst: impala installed successfully to $IMPALA_BIN"
+                        echo "postinst: Run 'impala' to manage WiFi networks (requires iwd)."
+                    else
+                        echo "postinst: WARNING: impala download failed. WiFi management will not be available."
+                        echo "postinst: To install manually later, visit: https://github.com/pythops/impala"
+                        rm -f "$IMPALA_BIN"
+                    fi
+                else
+                    echo "postinst: WARNING: Could not find impala download URL."
+                    echo "postinst: You can install it manually from: https://github.com/pythops/impala"
+                fi
+            else
+                echo "postinst: WARNING: Neither curl nor wget available. Cannot download impala."
+                echo "postinst: Install curl or wget, then reinstall this package."
+            fi
+        fi
+
+        echo "postinst: ==============================================="
+        echo ""
+
         # Prompt for username to add to sudo group
         echo ""
         echo "postinst: ==============================================="
@@ -114,6 +168,27 @@ case "$1" in
             echo "postinst: _greetd user permissions configured."
         else
             echo "postinst: WARNING: _greetd user does not exist. Greetd may not be installed."
+        fi
+
+        echo "postinst: ==============================================="
+        echo ""
+
+        # Enable iwd service for wireless networking
+        echo ""
+        echo "postinst: ==============================================="
+        echo "postinst: Enabling iwd wireless service"
+        echo "postinst: ==============================================="
+
+        if command -v systemctl >/dev/null 2>&1; then
+            if systemctl enable iwd 2>/dev/null; then
+                echo "postinst: iwd service enabled successfully."
+                echo "postinst: iwd will start automatically on next boot."
+            else
+                echo "postinst: WARNING: Could not enable iwd service."
+                echo "postinst: You may need to enable it manually: systemctl enable iwd"
+            fi
+        else
+            echo "postinst: WARNING: systemctl not found. Cannot enable iwd service."
         fi
 
         echo "postinst: ==============================================="
