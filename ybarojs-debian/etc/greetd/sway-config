@@ -6,7 +6,7 @@ bindsym Mod4+shift+e exec swaynag \
 	-b 'Poweroff' 'systemctl poweroff -i' \
 	-b 'Reboot' 'systemctl reboot -i'
 
-output * bg #333333 solid_color
+output * bg /usr/share/backgrounds/debian-package-factory/wallpaper.jpg fill
 
 include /etc/sway/config.d/*
 include /etc/greetd/sway-config.d/*
