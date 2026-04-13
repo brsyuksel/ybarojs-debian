@@ -50,7 +50,7 @@ client.urgent           #ff0000 #ff0000 #ffffff #ff0000   #ff0000
 # You can get the names of your outputs by running: swaymsg -t get_outputs
 
 # Wallpaper: set a system-wide default; users can override in ~/.config/sway/config
-output * bg /usr/share/backgrounds/debian-package-factory/wallpaper.jpg fill
+output * bg /usr/share/backgrounds/ybarojs-debian/wallpaper.jpg fill
 
 # Monitor layout: hardware-specific — override in /etc/sway/config.d/ or ~/.config/sway/config
 # output DP-2 position 0 0
