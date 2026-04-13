@@ -127,7 +127,9 @@ case "$1" in
         echo ""
         echo "To add a beautiful colored prompt to your terminal, run:"
         echo ""
-        echo '  echo "export PS1='"'"'\[\e[1;32m\]\u@\h\[\e[m\]:\[\e[1;34m\]\w\[\e[m\] [\[\e[1;33m\]\$?\[\e[m\]]\$ '"'"'" >> ~/.bashrc'
+        cat << 'PROMPT_CMD'
+  echo 'export PS1="\[\e[1;32m\]\u@\h\[\e[m\]:\[\e[1;34m\]\w\[\e[m\] [\[\e[1;33m\]\$?\[\e[m\]]\$ "' >> ~/.bashrc
+PROMPT_CMD
         echo ""
         echo "This will give you:"
         echo "  🟢 Green: username@hostname"
