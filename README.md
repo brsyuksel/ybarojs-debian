@@ -35,6 +35,24 @@ The following packages are automatically installed:
 
 ## Installation
 
+### Option 1: Quick Install (Recommended)
+
+Use the provided install script to automatically download and install the package:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/brsyuksel/ybarojs-debian/main/install.sh | sudo bash
+```
+
+Or clone and run locally:
+
+```bash
+git clone https://github.com/brsyuksel/ybarojs-debian.git
+cd ybarojs-debian
+sudo ./install.sh
+```
+
+### Option 2: Manual Install
+
 Download the `.deb` package from the [releases page](https://github.com/ybaroj/ybarojs-debian/releases) and install:
 
 ```bash
