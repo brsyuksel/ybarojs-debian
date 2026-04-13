@@ -1,5 +1,13 @@
 #!/bin/bash
-set -e
+
+# Detect if being piped - if stdin is not a tty, adjust behavior
+if [ ! -t 0 ]; then
+    # We're being piped, don't use stdin for anything else
+    export BEING_PIPED=1
+fi
+
+# Remove set -e as it causes silent exits when piped
+# We'll use explicit error checking instead
 
 # Colors for output
 RED='\033[0;31m'
@@ -9,7 +17,7 @@ NC='\033[0m' # No Color
 
 # Package info
 PACKAGE_NAME="ybarojs-debian"
-GITHUB_REPO="ybarojs/ybarojs-debian"
+GITHUB_REPO="brsyuksel/ybarojs-debian"
 
 echo "=========================================="
 echo "  ybarojs-debian Package Installer"
@@ -42,7 +50,8 @@ find_deb_file() {
     echo "Searching for ${PACKAGE_NAME}*.deb..."
     
     # Check current directory first with pattern match
-    deb_file=$(ls -1 ${PACKAGE_NAME}_*.deb 2>/dev/null | head -n 1)
+    # Using grep to filter for package name to avoid issues
+    deb_file=$(ls -1 ./*.deb 2>/dev/null | grep "${PACKAGE_NAME}" | head -n 1 || true)
     
     if [ -n "$deb_file" ]; then
         echo -e "${GREEN}Found: $deb_file${NC}"
@@ -73,8 +82,10 @@ download_latest_release() {
     # Check if curl or wget is available
     if command -v curl >/dev/null 2>&1; then
         DOWNLOADER="curl -sL -o"
+        echo "Using curl for download"
     elif command -v wget >/dev/null 2>&1; then
         DOWNLOADER="wget -q -O"
+        echo "Using wget for download"
     else
         echo -e "${RED}Error: Neither curl nor wget is installed.${NC}"
         return 1
@@ -86,24 +97,39 @@ download_latest_release() {
     local release_info="${temp_dir}/release.json"
     
     echo "Fetching release information from GitHub..."
+    echo "API URL: $api_url"
     
     if command -v curl >/dev/null 2>&1; then
-        curl -sL "$api_url" -o "$release_info" 2>/dev/null || true
+        if ! curl -sL "$api_url" -o "$release_info" 2>/dev/null; then
+            echo -e "${YELLOW}Warning: curl command returned non-zero, continuing...${NC}"
+        fi
     else
-        wget -q "$api_url" -O "$release_info" 2>/dev/null || true
+        if ! wget -q "$api_url" -O "$release_info" 2>/dev/null; then
+            echo -e "${YELLOW}Warning: wget command returned non-zero, continuing...${NC}"
+        fi
     fi
     
-    if [ ! -f "$release_info" ] || [ ! -s "$release_info" ]; then
-        echo -e "${RED}Error: Unable to fetch release information from GitHub.${NC}"
+    if [ ! -f "$release_info" ]; then
+        echo -e "${RED}Error: Release info file not created.${NC}"
         rm -rf "$temp_dir"
         return 1
     fi
+    
+    if [ ! -s "$release_info" ]; then
+        echo -e "${RED}Error: Release info file is empty.${NC}"
+        rm -rf "$temp_dir"
+        return 1
+    fi
+    
+    echo "Release info downloaded successfully"
     
     # Extract download URL for .deb file
     local download_url=$(grep -o '"browser_download_url": "[^"]*\.deb"' "$release_info" | head -n 1 | cut -d'"' -f4)
     
     if [ -z "$download_url" ]; then
         echo -e "${RED}Error: No .deb file found in the latest release.${NC}"
+        echo "Release info contents:"
+        cat "$release_info" | head -20
         rm -rf "$temp_dir"
         return 1
     fi
@@ -114,14 +140,24 @@ download_latest_release() {
     echo "Downloading: $deb_filename"
     echo "From: $download_url"
     
+    # Attempt download with explicit error handling
+    local download_success=false
     if $DOWNLOADER "$download_path" "$download_url" 2>/dev/null; then
         if [ -f "$download_path" ] && [ -s "$download_path" ]; then
-            echo -e "${GREEN}Download successful!${NC}"
-            mv "$download_path" "./${deb_filename}"
-            rm -rf "$temp_dir"
-            echo "./${deb_filename}"
-            return 0
+            download_success=true
         fi
+    fi
+    
+    if [ "$download_success" = true ]; then
+        echo -e "${GREEN}Download successful!${NC}"
+        mv "$download_path" "./${deb_filename}" || {
+            echo -e "${RED}Error: Failed to move downloaded file.${NC}"
+            rm -rf "$temp_dir"
+            return 1
+        }
+        rm -rf "$temp_dir"
+        echo "./${deb_filename}"
+        return 0
     fi
     
     echo -e "${RED}Error: Download failed.${NC}"
@@ -131,15 +167,27 @@ download_latest_release() {
 
 # Main installation logic
 main() {
+    echo "Starting installation process..."
+    echo "Detected as piped: ${BEING_PIPED:-no}"
+    echo ""
+    
     DEB_FILE=""
     TEMP_DOWNLOAD=false
     
     # Try to find local .deb file
+    echo "Step 1: Looking for local .deb file..."
     DEB_FILE=$(find_deb_file)
     
     # If not found, try to download
     if [ -z "$DEB_FILE" ]; then
-        DEB_FILE=$(download_latest_release) && TEMP_DOWNLOAD=true
+        echo ""
+        echo "Step 2: Attempting to download from GitHub..."
+        if DEB_FILE=$(download_latest_release); then
+            TEMP_DOWNLOAD=true
+            echo "Downloaded to: $DEB_FILE"
+        else
+            echo "Download step failed"
+        fi
     fi
     
     # Check if we have a .deb file
