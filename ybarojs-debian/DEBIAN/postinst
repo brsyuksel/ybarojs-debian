@@ -95,6 +95,29 @@ case "$1" in
 
         echo "postinst: ==============================================="
         echo ""
+
+        # Add _greetd user to video, render, and input groups for GPU/input access
+        echo ""
+        echo "postinst: ==============================================="
+        echo "postinst: Setting up _greetd user permissions"
+        echo "postinst: ==============================================="
+
+        if id "_greetd" >/dev/null 2>&1; then
+            for group in video render input; do
+                if getent group "$group" >/dev/null 2>&1; then
+                    echo "postinst: Adding _greetd to '$group' group..."
+                    usermod -aG "$group" "_greetd" 2>/dev/null || true
+                else
+                    echo "postinst: Group '$group' does not exist, skipping..."
+                fi
+            done
+            echo "postinst: _greetd user permissions configured."
+        else
+            echo "postinst: WARNING: _greetd user does not exist. Greetd may not be installed."
+        fi
+
+        echo "postinst: ==============================================="
+        echo ""
         ;;
 esac
 
