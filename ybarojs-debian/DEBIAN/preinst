@@ -2,6 +2,45 @@
 set -e
 
 # preinst: Back up any pre-existing system configs before installation.
+
+# Debian 13 (trixie) compatibility check
+VERSION_ID=""
+VERSION_CODENAME=""
+DEBIAN_VERSION=""
+
+# Try to read from /etc/os-release
+if [ -r /etc/os-release ]; then
+    VERSION_ID=$(grep -oP '(?<=^VERSION_ID=)"?[0-9]+"?' /etc/os-release | tr -d '"')
+    VERSION_CODENAME=$(grep -oP '(?<=^VERSION_CODENAME=)[a-z]+' /etc/os-release)
+fi
+
+# Fallback to /etc/debian_version
+if [ -z "$VERSION_ID" ] && [ -r /etc/debian_version ]; then
+    DEBIAN_VERSION=$(cat /etc/debian_version 2>/dev/null | cut -d'.' -f1)
+    if echo "$DEBIAN_VERSION" | grep -qE '^[0-9]+$'; then
+        VERSION_ID="$DEBIAN_VERSION"
+    fi
+fi
+
+# Determine detected version for error message
+DETECTED_VERSION="${VERSION_ID}${VERSION_ID:+ }${VERSION_CODENAME}"
+if [ -z "$DETECTED_VERSION" ]; then
+    DETECTED_VERSION="unknown"
+fi
+
+# Check for Debian 13 (trixie)
+IS_TRIIXE=0
+if [ "$VERSION_ID" = "13" ] || [ "$VERSION_CODENAME" = "trixie" ]; then
+    IS_TRIIXE=1
+fi
+
+if [ "$IS_TRIIXE" -ne 1 ]; then
+    echo "ERROR: This package is only compatible with Debian 13 (trixie)."
+    echo "Current version detected: $DETECTED_VERSION"
+    echo "Installation aborted."
+    exit 1
+fi
+
 # Strategy: rename 'config' -> 'config.backup'; all other files get a '.backup' suffix.
 
 backup_dir() {
