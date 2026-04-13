@@ -34,6 +34,18 @@ case "$1" in
         remove_dir /etc/xdg/waybar
         remove_dir /etc/xdg/tofi
         remove_dir /etc/greetd
+        
+        # Remove ybarojs-prompt.sh sourcing from /etc/bash.bashrc
+        if [ -f /etc/bash.bashrc ]; then
+            BASHRC_LINE='[ -f /etc/profile.d/ybarojs-prompt.sh ] && . /etc/profile.d/ybarojs-prompt.sh'
+            if grep -qF "$BASHRC_LINE" /etc/bash.bashrc; then
+                echo "prerm: Removing ybarojs-prompt.sh sourcing from /etc/bash.bashrc..."
+                # Remove the line and the comment above it
+                sed -i '/# Source ybarojs-debian prompt configuration/d' /etc/bash.bashrc
+                sed -i "/\[ -f \/etc\/profile.d\/ybarojs-prompt.sh \] && . \/etc\/profile.d\/ybarojs-prompt.sh/d" /etc/bash.bashrc
+                echo "prerm: /etc/bash.bashrc cleaned up."
+            fi
+        fi
         ;;
 esac
 
