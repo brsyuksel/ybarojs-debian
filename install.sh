@@ -47,14 +47,14 @@ find_deb_file() {
         "../release"
     )
     
-    echo "Searching for ${PACKAGE_NAME}*.deb..."
+    echo "Searching for ${PACKAGE_NAME}*.deb..." >&2
     
     # Check current directory first with pattern match
     # Using grep to filter for package name to avoid issues
     deb_file=$(ls -1 ./*.deb 2>/dev/null | grep "${PACKAGE_NAME}" | head -n 1 || true)
     
     if [ -n "$deb_file" ]; then
-        echo -e "${GREEN}Found: $deb_file${NC}"
+        echo -e "${GREEN}Found: $deb_file${NC}" >&2
         echo "$deb_file"
         return 0
     fi
@@ -64,7 +64,7 @@ find_deb_file() {
         if [ -d "$path" ]; then
             deb_file=$(find "$path" -maxdepth 2 -name "${PACKAGE_NAME}_*.deb" -type f 2>/dev/null | head -n 1)
             if [ -n "$deb_file" ]; then
-                echo -e "${GREEN}Found: $deb_file${NC}"
+                echo -e "${GREEN}Found: $deb_file${NC}" >&2
                 echo "$deb_file"
                 return 0
             fi
