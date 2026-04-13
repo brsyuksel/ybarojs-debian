@@ -1,6 +1,0 @@
-etc/skel/.config/sway /etc/skel/.config/
-etc/skel/.config/waybar /etc/skel/.config/
-etc/skel/.config/tofi /etc/skel/.config/
-etc/skel/.config/mako /etc/skel/.config/
-etc/skel/.config/foot /etc/skel/.config/
-etc/xdg/greetd /etc/xdg/

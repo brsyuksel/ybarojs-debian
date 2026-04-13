@@ -1,0 +1,7 @@
+ybarojs-debian (1.0-1) unstable; urgency=medium
+
+  * Initial release.
+  * Create meta-package for Sway window manager environment.
+  * Include dependencies for sway, waybar, greetd, wlgreet, and tofi.
+
+ -- ybaroj <ybaroj@example.com>  Mon, 13 Apr 2026 12:00:00 +0000
