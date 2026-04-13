@@ -43,12 +43,81 @@ case "$1" in
                 fi
             else
                 echo "postinst: WARNING: wget not found. Cannot download JetBrainsMono Nerd Font."
-                echo "postinst: Install wget and run: dpkg-reconfigure debian-package-factory"
+                echo "postinst: Install wget and run: dpkg-reconfigure ybarojs-debian"
             fi
         fi
 
         echo "postinst: rebuilding system font cache..."
         fc-cache -f || true
+
+        # Prompt for username to add to sudo group
+        echo ""
+        echo "postinst: ==============================================="
+        echo "postinst: Optional: Add a user to the sudo group"
+        echo "postinst: ==============================================="
+
+        SUDO_USERNAME=""
+
+        # Try debconf first (standard Debian way), fallback to read
+        if command -v debconf >/dev/null 2>&1; then
+            # Try to get username from debconf
+            SUDO_USERNAME="$(debconf-show ybarojs-debian 2>/dev/null | grep 'ybarojs-debian/sudo-username' | sed 's/.*: //')" || true
+        fi
+
+        # If debconf didn't provide a username, prompt interactively
+        if [ -z "$SUDO_USERNAME" ]; then
+            # Only prompt if we have a terminal (not during non-interactive installs)
+            if [ -t 0 ] && [ -t 1 ]; then
+                printf "postinst: Enter username to add to sudo group (leave empty to skip): "
+                read -r SUDO_USERNAME || true
+            fi
+        fi
+
+        # Process the username if provided
+        if [ -n "$SUDO_USERNAME" ]; then
+            # Validate that the user exists
+            if id "$SUDO_USERNAME" >/dev/null 2>&1; then
+                echo "postinst: Adding user '$SUDO_USERNAME' to sudo group..."
+                if usermod -aG sudo "$SUDO_USERNAME" 2>/dev/null; then
+                    echo "postinst: User '$SUDO_USERNAME' successfully added to sudo group."
+                    echo "postinst: User must log out and back in for changes to take effect."
+                else
+                    echo "postinst: WARNING: Failed to add user to sudo group. Run manually: usermod -aG sudo $SUDO_USERNAME"
+                fi
+            else
+                echo "postinst: WARNING: User '$SUDO_USERNAME' does not exist. Skipping sudo group assignment."
+                echo "postinst: Create the user first, then run: usermod -aG sudo $SUDO_USERNAME"
+            fi
+        else
+            echo "postinst: No username provided. Skipping sudo group setup."
+            echo "postinst: To add a user later, run: usermod -aG sudo <username>"
+        fi
+
+        echo "postinst: ==============================================="
+        echo ""
+
+        # Add _greetd user to video, render, and input groups for GPU/input access
+        echo ""
+        echo "postinst: ==============================================="
+        echo "postinst: Setting up _greetd user permissions"
+        echo "postinst: ==============================================="
+
+        if id "_greetd" >/dev/null 2>&1; then
+            for group in video render input; do
+                if getent group "$group" >/dev/null 2>&1; then
+                    echo "postinst: Adding _greetd to '$group' group..."
+                    usermod -aG "$group" "_greetd" 2>/dev/null || true
+                else
+                    echo "postinst: Group '$group' does not exist, skipping..."
+                fi
+            done
+            echo "postinst: _greetd user permissions configured."
+        else
+            echo "postinst: WARNING: _greetd user does not exist. Greetd may not be installed."
+        fi
+
+        echo "postinst: ==============================================="
+        echo ""
         ;;
 esac
 
