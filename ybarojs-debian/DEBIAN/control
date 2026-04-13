@@ -4,7 +4,7 @@ Section: misc
 Priority: optional
 Architecture: all
 Maintainer: ybaroj <ybaroj@localhost>
-Depends: sudo, sway, waybar, tofi, greetd, wlgreet, fonts-jetbrains-mono, fonts-noto-core, wireplumber, pipewire-pulse, unzip
+Depends: sudo, git, sway, waybar, tofi, greetd, wlgreet, fonts-jetbrains-mono, fonts-noto-core, wireplumber, pipewire-pulse, unzip
 Replaces: sway, waybar, tofi, greetd, wlgreet
 Conflicts: fonts-font-awesome
 Description: Sway window manager meta-package with Catppuccin theme
