@@ -110,9 +110,3 @@ This package is automatically built via GitHub Actions on every push to the main
 5. Uploads artifacts for release
 
 See `.github/workflows/build.yml` for the complete workflow definition.
-
-## License
-
-This meta-package is released under the MIT License. See [LICENSE](LICENSE) for details.
-
-Individual component configurations (Sway, Waybar, Tofi, Greetd) retain their original licenses where applicable.
