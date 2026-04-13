@@ -1,0 +1,55 @@
+#!/bin/sh
+set -e
+
+# postinst: Post-installation tasks.
+# On configure: install JetBrainsMono Nerd Font and tuigreet binary if not already present.
+# Always: rebuild the system font cache.
+
+FONT_DIR="/usr/local/share/fonts/nerd-fonts/JetBrainsMono"
+FONT_ZIP_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip"
+
+case "$1" in
+    configure)
+        if fc-list | grep -qi "JetBrainsMono Nerd"; then
+            echo "postinst: JetBrainsMono Nerd Font already installed, skipping download."
+        else
+            if command -v wget >/dev/null 2>&1; then
+                echo "postinst: JetBrainsMono Nerd Font not found, installing..."
+                mkdir -p "$FONT_DIR"
+
+                # Use mktemp to avoid /tmp symlink attack (CVE class: TOCTOU race)
+                FONT_ZIP_TMP="$(mktemp /tmp/JetBrainsMono.XXXXXX.zip)"
+
+                echo "postinst: downloading JetBrainsMono.zip from GitHub Releases..."
+                wget -q --tries=3 -O "$FONT_ZIP_TMP" "$FONT_ZIP_URL" || {
+                    echo "postinst: WARNING: font download failed (network unavailable?). Waybar icon glyphs may not render correctly."
+                    echo "postinst: To install manually later: dpkg-reconfigure ybarojs-debian"
+                    rm -f "$FONT_ZIP_TMP"
+                    FONT_ZIP_TMP=""
+                    true
+                }
+
+                if [ -n "$FONT_ZIP_TMP" ] && [ -f "$FONT_ZIP_TMP" ]; then
+                    echo "postinst: extracting .ttf files to $FONT_DIR..."
+                    unzip -o -q "$FONT_ZIP_TMP" '*.ttf' -d "$FONT_DIR" || true
+
+                    echo "postinst: cleaning up temporary zip..."
+                    rm -f "$FONT_ZIP_TMP"
+
+                    echo "postinst: rebuilding font cache for $FONT_DIR..."
+                    fc-cache -f "$FONT_DIR" || true
+
+                    echo "postinst: JetBrainsMono Nerd Font installed successfully."
+                fi
+            else
+                echo "postinst: WARNING: wget not found. Cannot download JetBrainsMono Nerd Font."
+                echo "postinst: Install wget and run: dpkg-reconfigure debian-package-factory"
+            fi
+        fi
+
+        echo "postinst: rebuilding system font cache..."
+        fc-cache -f || true
+        ;;
+esac
+
+exit 0

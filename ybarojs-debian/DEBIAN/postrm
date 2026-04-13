@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+
+# postrm: Restore backed-up configs when the package is removed or purged.
+
+restore_dir() {
+    local dir="$1"
+
+    if [ ! -d "$dir" ]; then
+        return 0
+    fi
+
+    for f in "$dir"/*.backup; do
+        [ -e "$f" ] || continue          # skip if glob found nothing
+
+        original="${f%.backup}"
+        echo "postrm: restoring $f -> $original"
+        mv "$f" "$original"
+    done
+}
+
+case "$1" in
+    remove|purge)
+        restore_dir /etc/sway
+        restore_dir /etc/xdg/waybar
+        restore_dir /etc/xdg/tofi
+        restore_dir /etc/greetd
+        ;;
+esac
+
+exit 0

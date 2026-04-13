@@ -1,4 +1,4 @@
-name: Release Build
+name: Release
 
 on:
   push:
@@ -13,89 +13,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install build dependencies
+      - name: Extract version and update control file
         run: |
-          sudo apt-get update
-          sudo apt-get install -y dpkg-dev debhelper lintian
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          sed -i "s/^Version: .*/Version: $VERSION/" ybarojs-debian/DEBIAN/control
+          echo "control file after update:"
+          grep '^Version:' ybarojs-debian/DEBIAN/control
 
-      - name: Get version from tag
-        id: get_version
+      - name: Set permissions on maintainer scripts
+        run: chmod -R 755 ybarojs-debian/DEBIAN
+
+      - name: Build .deb package
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Building version: $VERSION"
+          dpkg-deb --build --root-owner-group ybarojs-debian \
+            ybarojs-debian_${{ github.ref_name }}_amd64.deb
 
-      - name: Verify package structure
-        run: |
-          echo "=== Package Directory Structure ==="
-          ls -la ybarojs-debian/
-          echo ""
-          echo "=== debian/ Directory ==="
-          ls -la ybarojs-debian/debian/
-          echo ""
-          echo "=== Control File ==="
-          cat ybarojs-debian/debian/control
-          echo ""
-          echo "=== Changelog ==="
-          cat ybarojs-debian/debian/changelog
-
-      - name: Build Debian package
-        run: |
-          dpkg-deb --build ybarojs-debian/
-
-      - name: Verify build output
-        run: |
-          echo "=== Build Output ==="
-          ls -la *.deb
-          echo ""
-          echo "=== Package Info ==="
-          dpkg-deb --info *.deb
-          echo ""
-          echo "=== Package Contents ==="
-          dpkg-deb --contents *.deb
-
-      - name: Run lintian check
-        run: |
-          lintian *.deb || true
-        continue-on-error: true
-
-      - name: Get package filename
-        id: get_package
-        run: |
-          PACKAGE_FILE=$(ls *.deb | head -n 1)
-          echo "package_file=$PACKAGE_FILE" >> $GITHUB_OUTPUT
-          echo "package_name=$(basename $PACKAGE_FILE .deb)" >> $GITHUB_OUTPUT
-          echo "Package file: $PACKAGE_FILE"
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: "ybarojs-debian ${{ steps.get_version.outputs.version }}"
-          body: |
-            Debian package for ybarojs-debian ${{ steps.get_version.outputs.version }}
-
-            ### Package Info
-            - **Package:** ${{ steps.get_package.outputs.package_file }}
-            - **Version:** ${{ steps.get_version.outputs.version }}
-
-            ### Installation
-            ```bash
-            sudo dpkg -i ${{ steps.get_package.outputs.package_file }}
-            sudo apt-get install -f  # Install dependencies if needed
-            ```
-
-            ### Contents
-            This package installs:
-            - Sway window manager configuration
-            - Waybar system bar
-            - Greetd display manager with wlgreet
-            - Tofi application launcher
-          files: |
-            *.deb
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: ybarojs-debian_${{ github.ref_name }}_amd64.deb

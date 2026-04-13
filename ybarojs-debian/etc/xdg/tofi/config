@@ -1,0 +1,43 @@
+# tofi launcher config — Catppuccin Mocha theme
+# Palette: https://catppuccin.com/palette — Mocha variant
+# Aligned with Waybar JetBrainsMono Nerd Font + Base/Surface0/Blue/Mauve accents
+
+# --- Layout ---
+width = 100%
+height = 100%
+padding-left = 35%
+padding-top = 35%
+
+# --- Border / Outline ---
+border-width = 0
+outline-width = 0
+
+# --- Font ---
+font = JetBrainsMono Nerd Font
+font-size = 20
+
+# --- Background ---
+# Catppuccin Mocha Base (#1e1e2e) at ~90% opacity — matches Waybar background
+background-color = #1e1e2eE6
+
+# --- Text Colors ---
+# Default result text: Pink — matches Waybar VOL (pulseaudio) accent
+text-color = #f5c2e7
+# Selected result text: Green — distinct from Pink unselected text, no background
+selection-color = #a6e3a1
+# No selection background — color change alone distinguishes the selection
+selection-background = #00000000
+# Typed input text: Text — full brightness
+input-color = #cdd6f4
+# Prompt text: Mauve — matches Waybar clock accent
+prompt-color = #cba6f7
+# Placeholder text: Overlay0 — dimmed hint
+placeholder-color = #6c7086
+
+# --- Prompt / Placeholder ---
+prompt-text = ""
+placeholder-text = "Search..."
+
+# --- Results ---
+num-results = 8
+result-spacing = 5
