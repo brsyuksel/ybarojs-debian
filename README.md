@@ -40,10 +40,12 @@ The following packages are automatically installed:
 
 ### Option 1: Quick Install (Recommended)
 
-Use the provided install script to automatically download and install the package:
+Download and run the install script (interactive prompts require this method):
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/brsyuksel/ybarojs-debian/main/install.sh | bash
+wget https://raw.githubusercontent.com/brsyuksel/ybarojs-debian/main/install.sh
+chmod +x install.sh
+./install.sh
 ```
 
 Or clone and run locally:

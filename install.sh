@@ -74,8 +74,14 @@ echo -e "${GREEN}Download complete!${NC}"
 echo ""
 echo "Installing package..."
 echo "=========================================="
+echo ""
+echo "Note: You will be prompted for:"
+echo "  1. sudo password"
+echo "  2. Username to add to sudo group (optional)"
+echo ""
 
-sudo apt install -y "./${DEB_FILE}"
+# Use /dev/tty to ensure interactive prompts work even when script is piped
+sudo apt install "./${DEB_FILE}" < /dev/tty
 
 # Cleanup
 rm -f "$DEB_FILE"
