@@ -1,6 +1,6 @@
 [terminal]
-vt = 1
+vt = 7
 
 [default_session]
-command = "tuigreet --cmd sway"
-user = "greeter"
+command = "sway --config /etc/greetd/sway-config"
+user = "_greetd"
