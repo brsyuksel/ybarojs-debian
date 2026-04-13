@@ -2,6 +2,8 @@
 
 A Debian meta-package providing a complete Wayland desktop environment based on the Sway tiling window manager, featuring custom Catppuccin Mocha themed configurations.
 
+**Architecture:** amd64 (x86_64) - Required for impala WiFi management binary
+
 ## Overview
 
 **ybarojs-debian** simplifies the installation and configuration of a modern, minimalist Wayland desktop stack on Debian systems. It bundles essential components and applies consistent theming out of the box.

@@ -2,7 +2,7 @@ Package: ybarojs-debian
 Version: 1.0.0
 Section: misc
 Priority: optional
-Architecture: all
+Architecture: amd64
 Maintainer: ybaroj <ybaroj@localhost>
 Depends: sudo, git, iwd, sway, waybar, tofi, greetd, wlgreet, fonts-jetbrains-mono, fonts-noto-core, wireplumber, pipewire-pulse, unzip
 Replaces: sway, waybar, tofi, greetd, wlgreet
