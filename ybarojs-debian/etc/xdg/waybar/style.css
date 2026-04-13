@@ -1,0 +1,187 @@
+/* =============================================================================
+ * Waybar stylesheet — Catppuccin Mocha
+ *
+ * Palette reference:
+ *   Base:     #1e1e2e   Mantle:   #181825   Crust:    #11111b
+ *   Surface0: #313244   Surface1: #45475a   Overlay0: #6c7086
+ *   Text:     #cdd6f4   Subtext1: #bac2de
+ *   Blue:     #89b4fa   Lavender: #b4befe   Sapphire: #74c7ec
+ *   Sky:      #89dceb   Teal:     #94e2d5   Green:    #a6e3a1
+ *   Yellow:   #f9e2af   Peach:    #fab387   Maroon:   #eba0ac
+ *   Red:      #f38ba8   Pink:     #f5c2e7   Mauve:    #cba6f7
+ *   Flamingo: #f2cdcd   Rosewater:#f5e0dc
+ * ============================================================================= */
+
+/* ---------------------------------------------------------------------------
+ * Bar container
+ * --------------------------------------------------------------------------- */
+window#waybar {
+    background-color: rgba(30, 30, 46, 0.9);
+    color: #cdd6f4;
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", "Noto Sans", sans-serif;
+    font-size: 14px;
+    padding: 0 4px;
+    transition-property: background-color;
+    transition-duration: .5s;
+}
+
+window#waybar.hidden {
+    opacity: 0.2;
+}
+
+/* ---------------------------------------------------------------------------
+ * Workspaces
+ * --------------------------------------------------------------------------- */
+#workspaces button {
+    padding: 0 8px;
+    margin: 2px 2px;
+    background-color: transparent;
+    color: #a6adc8;
+    border-radius: 6px;
+    border-bottom: none;
+    transition: all 0.3s ease;
+}
+
+#workspaces button.focused {
+    background-color: rgba(137, 180, 250, 0.2);
+    color: #89b4fa;
+    border-radius: 6px;
+    border-bottom: none;
+}
+
+#workspaces button.urgent {
+    background-color: #f38ba8;
+    color: #11111b;
+}
+
+#workspaces button:hover {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: inherit;
+    text-shadow: inherit;
+}
+
+/* ---------------------------------------------------------------------------
+ * Global module defaults
+ * --------------------------------------------------------------------------- */
+#clock,
+#battery,
+#cpu,
+#memory,
+#temperature,
+#backlight,
+#network,
+#pulseaudio,
+#tray,
+#mode,
+#power-profiles-daemon {
+    padding: 0 12px;
+    margin: 2px 1px;
+    border-radius: 6px;
+    background-color: rgba(49, 50, 68, 0.5);
+    color: #cdd6f4;
+}
+
+/* ---------------------------------------------------------------------------
+ * Per-module accent colours
+ * --------------------------------------------------------------------------- */
+
+/* Clock — Mauve */
+#clock {
+    color: #cba6f7;
+    font-weight: bold;
+}
+
+/* CPU — Sky */
+#cpu {
+    color: #89dceb;
+}
+
+/* Memory — Teal */
+#memory {
+    color: #94e2d5;
+}
+
+/* Temperature — Yellow; critical → Red */
+#temperature {
+    color: #f9e2af;
+}
+
+#temperature.critical {
+    color: #f38ba8;
+}
+
+/* Network — Blue */
+#network {
+    color: #89b4fa;
+}
+
+/* Audio — Pink; muted → dimmed */
+#pulseaudio {
+    color: #f5c2e7;
+}
+
+#pulseaudio.muted {
+    color: #6c7086;
+}
+
+/* Backlight — Yellow */
+#backlight {
+    color: #f9e2af;
+}
+
+/* Battery — Green; warning → Peach; critical → blinking Red */
+#battery {
+    color: #a6e3a1;
+}
+
+#battery.warning:not(.charging) {
+    color: #fab387;
+}
+
+#battery.critical:not(.charging) {
+    background-color: #f38ba8;
+    color: #11111b;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+/* Power profiles daemon — Lavender */
+#power-profiles-daemon {
+    color: #b4befe;
+}
+
+/* Tray */
+#tray {
+    padding-left: 12px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Mode indicator (e.g. resize mode)
+ * --------------------------------------------------------------------------- */
+#mode {
+    background-color: #fab387;
+    color: #11111b;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+/* ---------------------------------------------------------------------------
+ * Scratchpad
+ * --------------------------------------------------------------------------- */
+#scratchpad {
+    color: #6c7086;
+    padding: 0 8px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Animations
+ * --------------------------------------------------------------------------- */
+@keyframes blink {
+    to {
+        background-color: #ffffff;
+        color: #000000;
+    }
+}

@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version and update control file
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          sed -i "s/^Version: .*/Version: $VERSION/" ybarojs-debian/DEBIAN/control
+          echo "control file after update:"
+          grep '^Version:' ybarojs-debian/DEBIAN/control
+
+      - name: Set permissions on maintainer scripts
+        run: chmod -R 755 ybarojs-debian/DEBIAN
+
+      - name: Build .deb package
+        run: |
+          dpkg-deb --build --root-owner-group ybarojs-debian \
+            ybarojs-debian_${{ github.ref_name }}_amd64.deb
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: ybarojs-debian_${{ github.ref_name }}_amd64.deb

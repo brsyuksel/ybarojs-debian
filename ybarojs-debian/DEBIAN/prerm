@@ -1,0 +1,40 @@
+#!/bin/sh
+set -e
+
+# prerm: Runs before package files are removed.
+# Removes the installed config files so dpkg does not leave orphaned files
+# that would block postrm from restoring the originals cleanly.
+
+remove_dir() {
+    local dir="$1"
+
+    if [ ! -d "$dir" ]; then
+        return 0
+    fi
+
+    for f in "$dir"/*; do
+        [ -e "$f" ] || continue          # skip if glob found nothing
+        [ -f "$f" ] || continue          # only regular files
+
+        filename="$(basename "$f")"
+
+        # Only remove files that are NOT backups — leave .backup files for postrm to restore
+        case "$filename" in
+            *.backup) continue ;;
+        esac
+
+        echo "prerm: removing $f"
+        rm -f "$f"
+    done
+}
+
+case "$1" in
+    remove|upgrade|deconfigure)
+        remove_dir /etc/sway
+        remove_dir /etc/xdg/waybar
+        remove_dir /etc/xdg/tofi
+        remove_dir /etc/greetd
+        ;;
+esac
+
+exit 0

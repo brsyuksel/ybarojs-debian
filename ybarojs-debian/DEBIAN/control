@@ -1,0 +1,10 @@
+Package: ybarojs-debian
+Version: 1.0.0
+Section: misc
+Priority: optional
+Architecture: all
+Maintainer: ybaroj <ybaroj@localhost>
+Depends: sudo, sway, waybar, tofi, greetd, wlgreet, fonts-jetbrains-mono, fonts-noto-core, wireplumber, pipewire-pulse, unzip
+Replaces: sway, waybar, tofi, greetd, wlgreet
+Conflicts: fonts-font-awesome
+Description: TBD

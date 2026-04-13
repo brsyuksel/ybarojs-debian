@@ -1,0 +1,41 @@
+name: PR Dry Run
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  dry-run-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version and update control file (dry run uses PR number)
+        run: |
+          VERSION="0.0.0-pr${{ github.event.pull_request.number }}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          sed -i "s/^Version: .*/Version: $VERSION/" ybarojs-debian/DEBIAN/control
+          echo "control file after update:"
+          grep '^Version:' ybarojs-debian/DEBIAN/control
+
+      - name: Set permissions on maintainer scripts
+        run: chmod -R 755 ybarojs-debian/DEBIAN
+
+      - name: Dry run build (smoke test)
+        run: |
+          dpkg-deb --build --root-owner-group ybarojs-debian \
+            ybarojs-debian_pr${{ github.event.pull_request.number }}_amd64.deb
+          echo "Dry run build succeeded."
+
+      - name: Verify .deb integrity
+        run: |
+          dpkg-deb --info ybarojs-debian_pr${{ github.event.pull_request.number }}_amd64.deb
+          dpkg-deb --contents ybarojs-debian_pr${{ github.event.pull_request.number }}_amd64.deb
+
+      - name: Discard artifact (no release on PR)
+        run: |
+          rm -f ybarojs-debian_pr${{ github.event.pull_request.number }}_amd64.deb
+          echo "Artifact discarded. No release created."

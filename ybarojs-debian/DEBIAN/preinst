@@ -1,0 +1,35 @@
+#!/bin/sh
+set -e
+
+# preinst: Back up any pre-existing system configs before installation.
+# Strategy: rename 'config' -> 'config.backup'; all other files get a '.backup' suffix.
+
+backup_dir() {
+    local dir="$1"
+
+    if [ ! -d "$dir" ]; then
+        return 0
+    fi
+
+    for f in "$dir"/*; do
+        [ -e "$f" ] || continue          # skip if glob found nothing
+        [ -f "$f" ] || continue          # only regular files
+
+        filename="$(basename "$f")"
+
+        # Skip files that are already backups
+        case "$filename" in
+            *.backup) continue ;;
+        esac
+
+        echo "preinst: backing up $f -> ${f}.backup"
+        mv "$f" "${f}.backup"
+    done
+}
+
+backup_dir /etc/sway
+backup_dir /etc/xdg/waybar
+backup_dir /etc/xdg/tofi
+backup_dir /etc/greetd
+
+exit 0

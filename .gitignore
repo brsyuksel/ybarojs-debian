@@ -1,0 +1,24 @@
+# Debian package build artifacts
+*.deb
+ybarojs-debian_*_amd64.deb
+
+# Linux temporary files
+*~
+*.swp
+*.swo
+*.swn
+.DS_Store
+Thumbs.db
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Logs
+*.log
+
+# Misc
+.env
+.env.local

@@ -1,0 +1,129 @@
+// -*- mode: jsonc -*-
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "spacing": 6,
+
+    "modules-left": [
+        "sway/workspaces",
+        "sway/mode",
+        "sway/scratchpad"
+    ],
+    "modules-right": [
+        "power-profiles-daemon",
+        "pulseaudio",
+        "network",
+        "cpu",
+        "memory",
+        "temperature",
+        "backlight",
+        "battery",
+        "battery#bat2",
+        "clock",
+        "tray"
+    ],
+
+    "sway/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{name}"
+    },
+
+    "sway/mode": {
+        "format": "<span style=\"italic\">{}</span>"
+    },
+
+    "sway/scratchpad": {
+        "format": "{icon} {count}",
+        "show-empty": false,
+        "format-icons": ["[~]", "[~][~]"],
+        "tooltip": true,
+        "tooltip-format": "{app}: {title}"
+    },
+
+    "tray": {
+        "spacing": 10
+    },
+
+    "clock": {
+        "format": "{:%H:%M %a %d %b}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "format-alt": "{:%Y-%m-%d}"
+    },
+
+    "cpu": {
+        "format": "<span weight=\"bold\">CPU </span>{usage}%",
+        "tooltip": false
+    },
+
+    "memory": {
+        "format": "<span weight=\"bold\">MEM </span>{used:0.1f}G/{total:0.1f}G"
+    },
+
+    "temperature": {
+        "critical-threshold": 80,
+        "format": "<span weight=\"bold\">TEMP </span>{temperatureC}°C",
+        "format-critical": "<span weight=\"bold\">TEMP </span>{temperatureC}°C !"
+    },
+
+    "backlight": {
+        "format": "<span weight=\"bold\">BRT </span>{percent}%",
+        "tooltip-format": "Brightness is {percent}%"
+    },
+
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "<span weight=\"bold\">BAT </span>{capacity}%",
+        "format-full": "<span weight=\"bold\">BAT </span>{capacity}%",
+        "format-charging": "<span weight=\"bold\">CHG </span>{capacity}%",
+        "format-plugged": "<span weight=\"bold\">PLG </span>{capacity}%",
+        "format-alt": "<span weight=\"bold\">BAT </span>{time}"
+    },
+
+    "battery#bat2": {
+        "bat": "BAT2"
+    },
+
+    "power-profiles-daemon": {
+        "format": "<span weight=\"bold\">{icon}</span> {profile}",
+        "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
+        "tooltip": true,
+        "format-icons": {
+            "default": "BAL",
+            "performance": "PERF",
+            "balanced": "BAL",
+            "power-saver": "ECO"
+        }
+    },
+
+    "network": {
+        "format-wifi": "<span weight=\"bold\">NET </span>{essid} {signalStrength}%",
+        "format-ethernet": "<span weight=\"bold\">ETH </span>{ipaddr}",
+        "tooltip-format": "{ifname} via {gwaddr}",
+        "format-linked": "<span weight=\"bold\">ETH </span>{ifname} (No IP)",
+        "format-disconnected": "<span weight=\"bold\">NET</span> --",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}"
+    },
+
+    "pulseaudio": {
+        "format": "<span weight=\"bold\">VOL </span>{volume}%",
+        "format-bluetooth": "<span weight=\"bold\">BT </span>{volume}%",
+        "format-bluetooth-muted": "<span weight=\"bold\">BT mute</span>",
+        "format-muted": "<span weight=\"bold\">VOL mute</span>",
+        "format-source": "{volume}% ",
+        "format-source-muted": "",
+        "format-icons": {
+            "headphone": "HP",
+            "hands-free": "HP",
+            "headset": "HP",
+            "phone": "PH",
+            "portable": "PH",
+            "car": "CAR",
+            "default": ["VOL", "VOL", "VOL"]
+        }
+    }
+}
