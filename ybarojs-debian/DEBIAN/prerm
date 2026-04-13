@@ -34,18 +34,44 @@ case "$1" in
         remove_dir /etc/xdg/waybar
         remove_dir /etc/xdg/tofi
         remove_dir /etc/greetd
-        
-        # Remove ybarojs-prompt.sh sourcing from /etc/bash.bashrc
-        if [ -f /etc/bash.bashrc ]; then
-            BASHRC_LINE='[ -f /etc/profile.d/ybarojs-prompt.sh ] && . /etc/profile.d/ybarojs-prompt.sh'
-            if grep -qF "$BASHRC_LINE" /etc/bash.bashrc; then
-                echo "prerm: Removing ybarojs-prompt.sh sourcing from /etc/bash.bashrc..."
-                # Remove the line and the comment above it
-                sed -i '/# Source ybarojs-debian prompt configuration/d' /etc/bash.bashrc
-                sed -i "/\[ -f \/etc\/profile.d\/ybarojs-prompt.sh \] && . \/etc\/profile.d\/ybarojs-prompt.sh/d" /etc/bash.bashrc
-                echo "prerm: /etc/bash.bashrc cleaned up."
+
+        # Clean up PS1 configuration from user .bashrc files
+        # We search for the ybarojs-debian marker comment to find and remove our changes
+        echo "prerm: Cleaning up PS1 configuration from user .bashrc files..."
+
+        # Get all users with home directories from /etc/passwd
+        awk -F: '$3 >= 1000 && $3 != 65534 {print $1, $6}' /etc/passwd 2>/dev/null | while read -r username home_dir; do
+            bashrc_file="$home_dir/.bashrc"
+
+            if [ -f "$bashrc_file" ]; then
+                # Check if our marker is present
+                if grep -q "# ybarojs-debian PS1 prompt configuration" "$bashrc_file" 2>/dev/null; then
+                    echo "prerm: Removing ybarojs-debian PS1 configuration from $bashrc_file..."
+
+                    # Create a temporary file
+                    temp_file="$(mktemp)"
+
+                    # Remove our marker comment and the PS1 line that follows it
+                    # Also remove any empty line before our comment
+                    awk '
+                        /^# ybarojs-debian PS1 prompt configuration$/ { skip_next=1; next }
+                        skip_next && /^export PS1=/ { skip_next=0; next }
+                        skip_next { skip_next=0; print }
+                        { print }
+                    ' "$bashrc_file" > "$temp_file"
+
+                    # Also remove any trailing empty lines at the end
+                    awk 'NF {p=1} p' "$temp_file" > "$bashrc_file.tmp"
+                    mv "$bashrc_file.tmp" "$bashrc_file"
+                    rm -f "$temp_file"
+
+                    # Fix ownership
+                    chown "$username:$username" "$bashrc_file" 2>/dev/null || true
+
+                    echo "prerm: PS1 configuration removed from $bashrc_file"
+                fi
             fi
-        fi
+        done
         ;;
 esac
 
