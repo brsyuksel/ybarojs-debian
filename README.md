@@ -16,11 +16,14 @@ A Debian meta-package providing a complete Wayland desktop environment based on 
 - **Automatic Font Installation** — JetBrainsMono Nerd Font and Noto core fonts included
 - **Interactive Setup** — User sudo configuration prompt during installation
 - **Display Manager Setup** — `_greetd` user automatically added to `video`, `render`, and `input` groups for hardware access
+- **Git** — Version control system (included as dependency)
+- **Optional Colored Prompt** — Post-installation help message to add beautiful colored PS1 to your terminal
 
 ## Dependencies
 
 The following packages are automatically installed:
 
+- `git` — Version control system
 - `sudo` — User privilege escalation
 - `sway` — Tiling Wayland compositor
 - `waybar` — Status bar
@@ -53,7 +56,7 @@ cd ybarojs-debian
 
 ### Option 2: Manual Install
 
-Download the `.deb` package from the [releases page](https://github.com/ybaroj/ybarojs-debian/releases) and install:
+Download the `.deb` package from the [releases page](https://github.com/brsyuksel/ybarojs-debian/releases) and install:
 
 ```bash
 sudo dpkg -i ybarojs-debian_*.deb
