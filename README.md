@@ -40,7 +40,7 @@ The following packages are automatically installed:
 Use the provided install script to automatically download and install the package:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/brsyuksel/ybarojs-debian/main/install.sh | sudo bash
+wget -qO- https://raw.githubusercontent.com/brsyuksel/ybarojs-debian/main/install.sh | bash
 ```
 
 Or clone and run locally:
@@ -48,7 +48,7 @@ Or clone and run locally:
 ```bash
 git clone https://github.com/brsyuksel/ybarojs-debian.git
 cd ybarojs-debian
-sudo ./install.sh
+./install.sh
 ```
 
 ### Option 2: Manual Install
