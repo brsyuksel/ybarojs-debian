@@ -2,7 +2,7 @@ Package: ybarojs-debian
 Version: 1.0.0
 Section: misc
 Priority: optional
-Architecture: all
+Architecture: amd64
 Maintainer: ybaroj <ybaroj@localhost>
 Depends: sudo, git, iwd, sway, waybar, tofi, greetd, wlgreet, fonts-jetbrains-mono, fonts-noto-core, wireplumber, pipewire-pulse, unzip
 Replaces: sway, waybar, tofi, greetd, wlgreet
@@ -15,6 +15,8 @@ Description: Sway window manager meta-package with Catppuccin theme
   Features include:
   - Waybar status bar with Catppuccin Mocha theme
   - Git version control system
+  - iwd wireless networking daemon with auto-enable
+  - impala WiFi management tool (TUI for iwd)
   - Tofi application launcher
   - Greetd display manager with wlgreet and themed login
   - System-wide configuration in /etc/xdg/ and /etc/greetd/
