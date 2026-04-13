@@ -76,18 +76,18 @@ find_deb_file() {
 
 # Function to download from GitHub releases
 download_latest_release() {
-    echo -e "${YELLOW}.deb file not found locally.${NC}"
-    echo "Attempting to download from GitHub releases..."
+    echo -e "${YELLOW}.deb file not found locally.${NC}" >&2
+    echo "Attempting to download from GitHub releases..." >&2
     
     # Check if curl or wget is available
     if command -v curl >/dev/null 2>&1; then
         DOWNLOADER="curl -sL -o"
-        echo "Using curl for download"
+        echo "Using curl for download" >&2
     elif command -v wget >/dev/null 2>&1; then
         DOWNLOADER="wget -q -O"
-        echo "Using wget for download"
+        echo "Using wget for download" >&2
     else
-        echo -e "${RED}Error: Neither curl nor wget is installed.${NC}"
+        echo -e "${RED}Error: Neither curl nor wget is installed.${NC}" >&2
         return 1
     fi
     
@@ -96,40 +96,40 @@ download_latest_release() {
     local temp_dir=$(mktemp -d)
     local release_info="${temp_dir}/release.json"
     
-    echo "Fetching release information from GitHub..."
-    echo "API URL: $api_url"
+    echo "Fetching release information from GitHub..." >&2
+    echo "API URL: $api_url" >&2
     
     if command -v curl >/dev/null 2>&1; then
         if ! curl -sL "$api_url" -o "$release_info" 2>/dev/null; then
-            echo -e "${YELLOW}Warning: curl command returned non-zero, continuing...${NC}"
+            echo -e "${YELLOW}Warning: curl command returned non-zero, continuing...${NC}" >&2
         fi
     else
         if ! wget -q "$api_url" -O "$release_info" 2>/dev/null; then
-            echo -e "${YELLOW}Warning: wget command returned non-zero, continuing...${NC}"
+            echo -e "${YELLOW}Warning: wget command returned non-zero, continuing...${NC}" >&2
         fi
     fi
     
     if [ ! -f "$release_info" ]; then
-        echo -e "${RED}Error: Release info file not created.${NC}"
+        echo -e "${RED}Error: Release info file not created.${NC}" >&2
         rm -rf "$temp_dir"
         return 1
     fi
     
     if [ ! -s "$release_info" ]; then
-        echo -e "${RED}Error: Release info file is empty.${NC}"
+        echo -e "${RED}Error: Release info file is empty.${NC}" >&2
         rm -rf "$temp_dir"
         return 1
     fi
     
-    echo "Release info downloaded successfully"
+    echo "Release info downloaded successfully" >&2
     
     # Extract download URL for .deb file
     local download_url=$(grep -o '"browser_download_url": "[^"]*\.deb"' "$release_info" | head -n 1 | cut -d'"' -f4)
     
     if [ -z "$download_url" ]; then
-        echo -e "${RED}Error: No .deb file found in the latest release.${NC}"
-        echo "Release info contents:"
-        cat "$release_info" | head -20
+        echo -e "${RED}Error: No .deb file found in the latest release.${NC}" >&2
+        echo "Release info contents:" >&2
+        cat "$release_info" | head -20 >&2
         rm -rf "$temp_dir"
         return 1
     fi
@@ -137,8 +137,8 @@ download_latest_release() {
     local deb_filename=$(basename "$download_url")
     local download_path="${temp_dir}/${deb_filename}"
     
-    echo "Downloading: $deb_filename"
-    echo "From: $download_url"
+    echo "Downloading: $deb_filename" >&2
+    echo "From: $download_url" >&2
     
     # Attempt download with explicit error handling
     local download_success=false
@@ -149,9 +149,9 @@ download_latest_release() {
     fi
     
     if [ "$download_success" = true ]; then
-        echo -e "${GREEN}Download successful!${NC}"
+        echo -e "${GREEN}Download successful!${NC}" >&2
         mv "$download_path" "./${deb_filename}" || {
-            echo -e "${RED}Error: Failed to move downloaded file.${NC}"
+            echo -e "${RED}Error: Failed to move downloaded file.${NC}" >&2
             rm -rf "$temp_dir"
             return 1
         }
@@ -160,7 +160,7 @@ download_latest_release() {
         return 0
     fi
     
-    echo -e "${RED}Error: Download failed.${NC}"
+    echo -e "${RED}Error: Download failed.${NC}" >&2
     rm -rf "$temp_dir"
     return 1
 }
