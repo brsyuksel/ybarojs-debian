@@ -8,5 +8,7 @@ bindsym Mod4+shift+e exec swaynag \
 
 output * bg /usr/share/backgrounds/debian-package-factory/wallpaper.jpg fill
 
+exec waybar
+
 include /etc/sway/config.d/*
 include /etc/greetd/sway-config.d/*
