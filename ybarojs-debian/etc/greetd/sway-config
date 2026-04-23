@@ -1,3 +1,13 @@
+# Make wlgreet floating and centered
+# Try multiple matching criteria since wlgreet may use different identifiers
+for_window [app_id="wlgreet"] floating enable, move position center, resize set 800 350, border pixel 2
+for_window [class="wlgreet"] floating enable, move position center, resize set 800 350, border pixel 2
+for_window [title="Login"] floating enable, move position center, resize set 800 350, border pixel 2
+for_window [title="wlgreet"] floating enable, move position center, resize set 800 350, border pixel 2
+
+# Disable default sway bindings that might interfere
+floating_modifier Mod4
+
 exec "/usr/sbin/wlgreet; swaymsg exit"
 
 bindsym Mod4+shift+e exec swaynag \
@@ -8,7 +18,7 @@ bindsym Mod4+shift+e exec swaynag \
 
 output * bg /usr/share/backgrounds/ybarojs-debian/wallpaper.jpg fill
 
-exec waybar
+exec_always waybar
 
 include /etc/sway/config.d/*
 include /etc/greetd/sway-config.d/*
