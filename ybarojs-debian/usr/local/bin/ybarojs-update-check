@@ -1,6 +1,6 @@
 #!/bin/sh
 # ybarojs-update-check - Check for firmware and package updates
-# Output format for waybar: UPT <total_count>
+# Output format for waybar: UPD <total_count>
 # Tooltip format: firmware: X, packages: Y
 
 CACHE_FILE="/tmp/ybarojs-update-check.cache"
@@ -41,7 +41,7 @@ PKG_COUNT=${PKG_COUNT:-0}
 
 TOTAL=$((FW_COUNT + PKG_COUNT))
 
-# Output for waybar (JSON) - just the number, "UPT" prefix is in waybar config
+# Output for waybar (JSON) - just the number, "UPD" prefix is in waybar config
 OUTPUT="{\"text\": \"$TOTAL\", \"tooltip\": \"firmware: $FW_COUNT, packages: $PKG_COUNT\", \"class\": \"update-reminder\"}"
 
 # Cache the output

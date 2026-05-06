@@ -21,7 +21,7 @@ A Debian meta-package providing a complete Wayland desktop environment based on 
 - **Git** — Version control system (included as dependency)
 - **Wireless Networking** — iwd wireless daemon with automatic service enable
 - **WiFi Management** — impala TUI for managing wireless networks (downloaded during install)
-- **Update Reminder** — Waybar module showing available firmware and package updates (UPT indicator)
+- **Update Reminder** — Waybar module showing available firmware and package updates (UPD indicator)
 - **Colored Bash Prompt** — Helper script to set up a beautiful colored PS1 in your terminal
 
 ## Dependencies
@@ -115,9 +115,9 @@ The package includes several helper scripts installed to `/usr/local/bin/` and `
 
 ### Update Reminder (Waybar)
 
-The waybar includes an **UPT** (updates) module that shows the total count of available firmware and package updates:
+The waybar includes an **UPD** (updates) module that shows the total count of available firmware and package updates:
 
-- **Display**: Shows `UPT <count>` in the status bar
+- **Display**: Shows `UPD <count>` in the status bar
 - **Tooltip**: Hover to see breakdown: `firmware: X, packages: Y`
 - **Click**: Opens a terminal showing detailed update information
 - **Update interval**: Every 5 minutes
@@ -169,7 +169,7 @@ A TUI interface will open for connecting to wireless networks using iwd.
    source ~/.bashrc
    ```
 
-4. **Check for updates** anytime by clicking the **UPT** indicator in waybar
+4. **Check for updates** anytime by clicking the **UPD** indicator in waybar
 
 ## Troubleshooting
 

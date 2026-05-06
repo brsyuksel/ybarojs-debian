@@ -129,7 +129,7 @@
     },
 
     "custom/updates": {
-        "format": "<span weight=\"bold\">UPT </span>{}",
+        "format": "<span weight=\"bold\">UPD </span>{}",
         "interval": 300,
         "exec": "/usr/local/bin/ybarojs-update-check",
         "return-type": "json",
