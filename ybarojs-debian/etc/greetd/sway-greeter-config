@@ -1,0 +1,41 @@
+# SYSC-Greet Sway config for greetd greeter session
+# This config runs sysc-greet inside foot terminal
+
+# Disable window borders for greeter
+default_border none
+default_floating_border none
+
+# No gaps needed for greeter
+gaps inner 0
+gaps outer 0
+
+# Input configuration
+input * {
+    xkb_layout "us"
+    repeat_delay 400
+    repeat_rate 40
+}
+
+input type:touchpad {
+    tap enabled
+}
+
+# Hide cursor after inactivity
+seat * hide_cursor 1000
+
+# Window rule for foot (fullscreen)
+for_window [app_id="foot"] fullscreen enable
+
+# Background wallpaper using output directive
+# (no gslapper needed - using sway's built-in background)
+output * bg /usr/share/backgrounds/ybarojs-debian/wallpaper.jpg fill
+
+# Startup: run sysc-greet in foot, then exit sway when done
+exec "foot --fullscreen /usr/local/bin/sysc-greet; swaymsg exit"
+
+# Power menu bindings
+bindsym Mod4+shift+e exec swaynag \
+    -t warning \
+    -m 'What do you want to do?' \
+    -b 'Poweroff' 'systemctl poweroff -i' \
+    -b 'Reboot' 'systemctl reboot -i'
