@@ -1,0 +1,39 @@
+#!/bin/sh
+# ybarojs-update-check - Check for firmware and package updates
+# Output format for waybar: UPT <total_count>
+# Tooltip format: firmware: X, packages: Y
+
+CACHE_FILE="/tmp/ybarojs-update-check.cache"
+CACHE_TTL=300  # 5 minutes cache
+
+# Check if cache is valid
+if [ -f "$CACHE_FILE" ]; then
+    CACHE_AGE=$(($(date +%s) - $(stat -c %Y "$CACHE_FILE" 2>/dev/null || echo 0)))
+    if [ "$CACHE_AGE" -lt "$CACHE_TTL" ]; then
+        cat "$CACHE_FILE"
+        exit 0
+    fi
+fi
+
+# Check firmware updates
+FW_COUNT=0
+if command -v fwupdmgr >/dev/null 2>&1; then
+    FW_COUNT=$(fwupdmgr get-updates 2>/dev/null | grep -c "^│" 2>/dev/null || echo 0)
+fi
+
+# Check package updates
+PKG_COUNT=0
+if command -v apt >/dev/null 2>&1; then
+    PKG_COUNT=$(apt list --upgradable 2>/dev/null | grep -c "upgradable" 2>/dev/null || echo 0)
+fi
+
+TOTAL=$((FW_COUNT + PKG_COUNT))
+
+# Output for waybar (JSON) - just the number, "UPT" prefix is in waybar config
+OUTPUT="{\"text\": \"$TOTAL\", \"tooltip\": \"firmware: $FW_COUNT, packages: $PKG_COUNT\", \"class\": \"update-reminder\"}"
+
+# Cache the output
+echo "$OUTPUT" > "$CACHE_FILE"
+
+# Output to stdout
+echo "$OUTPUT"
