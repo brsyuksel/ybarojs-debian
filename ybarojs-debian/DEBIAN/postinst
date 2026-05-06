@@ -104,6 +104,103 @@ case "$1" in
         echo "postinst: ==============================================="
         echo ""
 
+        # Download and install sysc-greet display manager greeter
+        echo ""
+        echo "postinst: ==============================================="
+        echo "postinst: Installing sysc-greet display manager greeter"
+        echo "postinst: ==============================================="
+
+        SYSC_BIN="/usr/local/bin/sysc-greet"
+        SYSC_SHARE_DIR="/usr/local/share/sysc-greet"
+        SYSC_VERSION="1.1.6"
+        SYSC_DEB_URL="https://github.com/Nomadcxx/sysc-greet/releases/download/v${SYSC_VERSION}/sysc-greet_${SYSC_VERSION}_amd64.deb"
+
+        if [ -f "$SYSC_BIN" ]; then
+            echo "postinst: sysc-greet already installed, skipping download."
+        else
+            if command -v wget >/dev/null 2>&1 || command -v curl >/dev/null 2>&1; then
+                echo "postinst: Downloading sysc-greet v${SYSC_VERSION}..."
+
+                # Create temp directory for extraction
+                SYSC_TMP_DIR="$(mktemp -d /tmp/sysc-greet.XXXXXX)"
+                SYSC_DEB_FILE="${SYSC_TMP_DIR}/sysc-greet.deb"
+
+                # Download the deb package
+                if command -v curl >/dev/null 2>&1; then
+                    curl -sL "$SYSC_DEB_URL" -o "$SYSC_DEB_FILE" 2>/dev/null || true
+                else
+                    wget -q "$SYSC_DEB_URL" -O "$SYSC_DEB_FILE" 2>/dev/null || true
+                fi
+
+                if [ -f "$SYSC_DEB_FILE" ] && [ -s "$SYSC_DEB_FILE" ]; then
+                    echo "postinst: Extracting sysc-greet from deb package..."
+
+                    # Extract the deb package
+                    dpkg-deb -x "$SYSC_DEB_FILE" "$SYSC_TMP_DIR/extracted" 2>/dev/null || {
+                        echo "postinst: WARNING: Failed to extract sysc-greet deb package."
+                        rm -rf "$SYSC_TMP_DIR"
+                    }
+
+                    # Install the binary (it's in usr/local/bin in the upstream deb)
+                    if [ -f "$SYSC_TMP_DIR/extracted/usr/local/bin/sysc-greet" ]; then
+                        mkdir -p "$(dirname "$SYSC_BIN")"
+                        cp "$SYSC_TMP_DIR/extracted/usr/local/bin/sysc-greet" "$SYSC_BIN"
+                        chmod +x "$SYSC_BIN"
+                        echo "postinst: sysc-greet binary installed to $SYSC_BIN"
+
+                        # Install data files (ASCII configs, fonts, wallpapers)
+                        if [ -d "$SYSC_TMP_DIR/extracted/usr/share/sysc-greet" ]; then
+                            mkdir -p "$SYSC_SHARE_DIR"
+                            cp -r "$SYSC_TMP_DIR/extracted/usr/share/sysc-greet/"* "$SYSC_SHARE_DIR/"
+                            echo "postinst: sysc-greet data files installed to $SYSC_SHARE_DIR"
+                        fi
+
+                        # Update greetd config to use sysc-greet instead of wlgreet
+                        if [ -f /etc/greetd/config.toml ]; then
+                            echo "postinst: Updating greetd configuration to use sysc-greet..."
+                            # Backup original config
+                            if [ ! -f /etc/greetd/config.toml.bak ]; then
+                                cp /etc/greetd/config.toml /etc/greetd/config.toml.bak
+                            fi
+                            # Replace wlgreet with sysc-greet
+                            sed -i 's|command.*wlgreet.*|command = "/usr/local/bin/sysc-greet"|g' /etc/greetd/config.toml
+                            echo "postinst: greetd configuration updated."
+                        fi
+
+                        # Update sway-config to use sysc-greet instead of wlgreet
+                        if [ -f /etc/greetd/sway-config ]; then
+                            echo "postinst: Updating greetd sway-config to use sysc-greet..."
+                            # Backup original config
+                            if [ ! -f /etc/greetd/sway-config.bak ]; then
+                                cp /etc/greetd/sway-config /etc/greetd/sway-config.bak
+                            fi
+                            # Replace wlgreet with sysc-greet and remove "swaymsg exit" for sysc-greet
+                            sed -i 's|exec "/usr/sbin/wlgreet; swaymsg exit"|exec "/usr/local/bin/sysc-greet"|g' /etc/greetd/sway-config
+                            echo "postinst: greetd sway-config updated."
+                        fi
+
+                        echo "postinst: sysc-greet installed successfully."
+                        echo "postinst: Note: Please restart greetd to apply changes: systemctl restart greetd"
+                    else
+                        echo "postinst: WARNING: sysc-greet binary not found in extracted package."
+                    fi
+
+                    # Cleanup temp directory
+                    rm -rf "$SYSC_TMP_DIR"
+                else
+                    echo "postinst: WARNING: sysc-greet download failed. Display manager greeter may not work."
+                    echo "postinst: You can install it manually from: https://github.com/Nomadcxx/sysc-greet"
+                    rm -rf "$SYSC_TMP_DIR"
+                fi
+            else
+                echo "postinst: WARNING: Neither curl nor wget available. Cannot download sysc-greet."
+                echo "postinst: Install curl or wget, then reinstall this package."
+            fi
+        fi
+
+        echo "postinst: ==============================================="
+        echo ""
+
         # Prompt for username to add to sudo group
         echo ""
         echo "postinst: ==============================================="
