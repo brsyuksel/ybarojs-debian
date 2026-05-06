@@ -158,6 +158,8 @@ case "$1" in
                         # Create greeter user for sysc-greet if it doesn't exist
                         if ! id "greeter" >/dev/null 2>&1; then
                             echo "postinst: Creating greeter user for sysc-greet..."
+                            # Add to users group as well for PAM compatibility
+                            useradd -M -G video,render,input,users -s /usr/sbin/nologin greeter 2>/dev/null || \
                             useradd -M -G video,render,input -s /usr/sbin/nologin greeter 2>/dev/null || \
                             useradd -M -G video -s /usr/sbin/nologin greeter 2>/dev/null || \
                             useradd -M -s /usr/sbin/nologin greeter 2>/dev/null || {
@@ -165,9 +167,17 @@ case "$1" in
                             }
                         fi
 
-                        # Create cache directory for greeter
+                        # Ensure greeter is in all required groups (in case user already existed)
+                        for group in video render input users; do
+                            if getent group "$group" >/dev/null 2>&1; then
+                                usermod -aG "$group" greeter 2>/dev/null || true
+                            fi
+                        done
+
+                        # Create cache and lib directories for greeter with proper permissions
                         mkdir -p /var/cache/sysc-greet
                         chown -R greeter:greeter /var/cache/sysc-greet 2>/dev/null || true
+                        chmod 755 /var/cache/sysc-greet 2>/dev/null || true
 
                         echo "postinst: sysc-greet installed successfully."
                         echo "postinst: Note: Please restart greetd to apply changes: systemctl restart greetd"
@@ -221,35 +231,45 @@ case "$1" in
                 echo "postinst: Adding user '$SUDO_USERNAME' to sudo group..."
                 if usermod -aG sudo "$SUDO_USERNAME" 2>/dev/null; then
                     echo "postinst: User '$SUDO_USERNAME' successfully added to sudo group."
-                    echo "postinst: User must log out and back in for changes to take effect."
                 else
                     echo "postinst: WARNING: Failed to add user to sudo group. Run manually: usermod -aG sudo $SUDO_USERNAME"
                 fi
+
+                # Add user to video, render, input groups for GPU and input access
+                # These are required for Sway/Wayland to work properly
+                echo "postinst: Adding user '$SUDO_USERNAME' to video, render, input groups..."
+                for group in video render input; do
+                    if getent group "$group" >/dev/null 2>&1; then
+                        if usermod -aG "$group" "$SUDO_USERNAME" 2>/dev/null; then
+                            echo "postinst: User added to '$group' group."
+                        else
+                            echo "postinst: WARNING: Failed to add user to '$group' group."
+                        fi
+                    fi
+                done
+                echo "postinst: User must log out and back in for all group changes to take effect."
             else
-                echo "postinst: WARNING: User '$SUDO_USERNAME' does not exist. Skipping sudo group assignment."
-                echo "postinst: Create the user first, then run: usermod -aG sudo $SUDO_USERNAME"
+                echo "postinst: WARNING: User '$SUDO_USERNAME' does not exist. Skipping user setup."
+                echo "postinst: Create the user first, then run the setup manually."
             fi
         else
-            echo "postinst: No username provided. Skipping sudo group setup."
-            echo "postinst: To add a user later, run: usermod -aG sudo <username>"
+            echo "postinst: No username provided. Skipping user group setup."
+            echo "postinst: To add a user later, run: usermod -aG sudo,video,render,input <username>"
         fi
 
         echo "postinst: ==============================================="
         echo ""
 
-        # Add greeter user to video, render, and input groups for GPU/input access
+        # Ensure greeter user has all required groups
         echo ""
         echo "postinst: ==============================================="
         echo "postinst: Setting up greeter user permissions"
         echo "postinst: ==============================================="
 
         if id "greeter" >/dev/null 2>&1; then
-            for group in video render input; do
+            for group in video render input users; do
                 if getent group "$group" >/dev/null 2>&1; then
-                    echo "postinst: Adding greeter to '$group' group..."
                     usermod -aG "$group" "greeter" 2>/dev/null || true
-                else
-                    echo "postinst: Group '$group' does not exist, skipping..."
                 fi
             done
             echo "postinst: greeter user permissions configured."
