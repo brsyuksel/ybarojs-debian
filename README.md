@@ -13,11 +13,11 @@ A Debian meta-package providing a complete Wayland desktop environment based on 
 - **Sway** — A tiling Wayland compositor and drop-in replacement for the i3 window manager
 - **Waybar** — Highly customizable Wayland bar for Sway and Wlroots based compositors (Catppuccin Mocha themed)
 - **Tofi** — Fast and simple application launcher for Wayland (themed)
-- **Greetd + wlgreet** — Minimal and flexible display manager with a Wayland greeter (themed)
+- **Greetd + sysc-greet** — Minimal and flexible display manager with a TUI greeter running in foot terminal (themed)
 - **System-wide Configuration** — All configs installed to `/etc/xdg/` and `/etc/greetd/` for system-wide defaults
 - **Automatic Font Installation** — JetBrainsMono Nerd Font and Noto core fonts included
 - **Interactive Setup** — User sudo configuration prompt during installation
-- **Display Manager Setup** — `_greetd` user automatically added to `video`, `render`, and `input` groups for hardware access
+- **Display Manager Setup** — `greeter` user automatically added to `video`, `render`, and `input` groups for hardware access
 - **Git** — Version control system (included as dependency)
 - **Wireless Networking** — iwd wireless daemon with automatic service enable
 - **WiFi Management** — impala TUI for managing wireless networks (downloaded during install)
@@ -34,7 +34,7 @@ The following packages are automatically installed:
 - `waybar` — Status bar
 - `tofi` — Application launcher
 - `greetd` — Minimal display manager
-- `wlgreet` — Wayland greeter for greetd
+- `foot` — Terminal emulator for running sysc-greet
 - `fonts-jetbrains-mono` — Primary UI font
 - `fonts-noto-core` — Unicode coverage fonts
 - `wireplumber` — PipeWire session manager

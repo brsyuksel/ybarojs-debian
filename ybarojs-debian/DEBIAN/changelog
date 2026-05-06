@@ -1,7 +1,7 @@
 ybarojs-debian (1.0.0)
 
   * Initial release
-  * Sway window manager with Waybar, Tofi, Greetd/wlgreet
+  * Sway window manager with Waybar, Tofi, Greetd/sysc-greet
   * Catppuccin Mocha themed configs
   * System-wide configuration in /etc/xdg/
   * Automatic font installation
