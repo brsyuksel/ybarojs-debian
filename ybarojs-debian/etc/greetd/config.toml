@@ -1,5 +1,7 @@
 [terminal]
-vt = 1
+# Use "next" to automatically select the next available VT
+# This avoids conflicts with getty on VT1
+vt = "next"
 
 [default_session]
 command = "sway -c /etc/greetd/sway-greeter-config"
