@@ -133,7 +133,7 @@
         "interval": 300,
         "exec": "/usr/local/bin/ybarojs-update-check",
         "return-type": "json",
-        "on-click": "foot -e sh -c 'echo \"Firmware updates:\"; fwupdmgr get-updates 2>/dev/null || echo \"No fwupdmgr available\"; echo \"\"; echo \"Package updates:\"; apt list --upgradable 2>/dev/null; echo \"\"; echo \"Press Enter to close...\"; read'",
+        "on-click": "foot --hold sh -c 'echo \"Firmware updates:\"; timeout 10 fwupdmgr get-updates 2>/dev/null || echo \"No firmware updates or fwupdmgr not available\"; echo \"\"; echo \"Package updates:\"; apt list --upgradable 2>/dev/null || echo \"Unable to check packages\"; echo \"\"; echo \"(Close this window when done)\"'",
         "tooltip": true
     }
 }
