@@ -4,43 +4,36 @@ This repository builds a custom Debian meta-package using a multi-agent workflow
 
 ## Agent Roles
 
-**Strategist (Kimi K2.5)** - High-level orchestration
-- Define package dependencies (`Depends`, `Recommends`, `Suggests`)
-- Map file system hierarchy (FHS) for custom configs
-- Generate prompts for worker agents
-- Final review before `dpkg-deb --build`
+**Lead Strategist (Kimi K2.5)** - *The Architect*
+- High-level orchestration and project roadmap.
+- Final decision maker on package dependencies and system integration.
+- Generates context-rich prompts for specialized worker agents.
 
-**Packager (Big Pickle / Free)** - Debian metadata
-- Generate `debian/control`, `debian/rules`, `debian/changelog`, `debian/copyright`
-- Ensure correct `control` file syntax
-- Handle versioning strings
+**Technical Counsel (Hy3 Preview)** - *The Policy Expert*
+- Cross-checks decisions against Debian Policy Manual & FHS.
+- Handles complex reasoning tasks (e.g., resolving circular dependencies).
+- Refines `debian/rules` and systemd integration logic.
 
-**Config Smith (MiniMax M2.5 Free)** - Asset placement
-- Wrap dotfiles (Sway, Waybar, Tofi, etc.) into package tree
-- Write `debian/install` mapping sources to target paths (`/etc/skel/`, `/etc/xdg/`)
-- Generate installation docs
+**Fast Operator (Ling 2.6 Flash)** - *The Speedster*
+- Rapid generation of boilerplate files (`changelog`, `copyright`).
+- Automates "Config Mapping": Parsing dotfiles and generating `debian/install`.
+- High-speed path refactoring (e.g., rewriting config paths for `/etc/xdg`).
 
-**Guard (Nemotron 3 Super Free)** - Validation
-- Pre-build syntax check on `postinst`, `prerm` scripts
-- Verify no illegal characters in Debian metadata
-- Lintian-style error checks
+**Packager (Big Pickle)** - *The Metadata Smith*
+- Ensures strict `debian/control` syntax.
+- Manages versioning strings and maintainer metadata.
+
+**Guard (Nemotron 3 Super)** - *The Validator*
+- Pre-build syntax check on `postinst`, `prerm` scripts.
+- Lintian-style error detection and security auditing.
 
 ## Execution Flow
 
-1. User provides package list and raw config files
-2. **Strategist** breaks down requirements → file-system map + task list
-3. **Packager** builds metadata skeleton; **Config Smith** populates source dirs
-4. **Guard** scans for syntax errors
-5. **Strategist** approves final `dpkg-deb --build`
-
-## Cost Tiers
-
-| Task | Model Cost | Tier |
-|------|------------|------|
-| Strategy & Dispatch | $0.60/1M tokens | Paid |
-| Boilerplate & Tree | $0.00 | Free |
-| Configuration Mapping | $0.00 | Free |
-| Syntax Validation | $0.00 | Free |
+1. **Vision:** **Strategist** defines the requirements and file-system map.
+2. **Review:** **Counsel** validates the map against Debian standards.
+3. **Execution:** **Fast Operator** generates the file tree and mapping; **Packager** creates metadata.
+4. **Audit:** **Guard** scans for syntax and policy violations.
+5. **Approval:** **Strategist** performs final review for `dpkg-deb --build`.
 
 ## Build Commands
 
