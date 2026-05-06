@@ -2,306 +2,261 @@
 set -e
 
 # postinst: Post-installation tasks.
-# On configure: install JetBrainsMono Nerd Font and tuigreet binary if not already present.
+# On configure: install JetBrainsMono Nerd Font, impala, sysc-greet
 # Always: rebuild the system font cache.
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+# Print a section banner
+print_banner() {
+    local title="$1"
+    echo ""
+    echo "postinst: ==============================================="
+    echo "postinst: $title"
+    echo "postinst: ==============================================="
+}
+
+# Download a file using curl or wget (with fallback)
+# Usage: download_file <url> <output_file> [optional: use_curl_for_api]
+download_file() {
+    local url="$1"
+    local output="$2"
+    local use_curl_api="${3:-false}"
+    
+    if command -v curl >/dev/null 2>&1; then
+        if [ "$use_curl_api" = "true" ]; then
+            curl -sL "$url" 2>/dev/null
+        else
+            curl -sL "$url" -o "$output" 2>/dev/null || return 1
+        fi
+    elif command -v wget >/dev/null 2>&1; then
+        if [ "$use_curl_api" = "true" ]; then
+            wget -qO- "$url" 2>/dev/null
+        else
+            wget -q "$url" -O "$output" 2>/dev/null || return 1
+        fi
+    else
+        return 1
+    fi
+}
+
+# Add a user to groups (silently skip non-existent groups)
+# Usage: add_user_to_groups <username> <group1> <group2> ...
+add_user_to_groups() {
+    local user="$1"
+    shift
+    for group in "$@"; do
+        if getent group "$group" >/dev/null 2>&1; then
+            usermod -aG "$group" "$user" 2>/dev/null || true
+        fi
+    done
+}
+
+# Check if curl or wget is available
+check_downloader() {
+    command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1
+}
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
 
 FONT_DIR="/usr/local/share/fonts/nerd-fonts/JetBrainsMono"
 FONT_ZIP_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip"
 
+IMPALA_DIR="/usr/local/bin"
+IMPALA_BIN="${IMPALA_DIR}/impala"
+IMPALA_API_URL="https://api.github.com/repos/pythops/impala/releases/latest"
+
+SYSC_BIN="/usr/local/bin/sysc-greet"
+SYSC_SHARE_DIR="/usr/local/share/sysc-greet"
+SYSC_VERSION="1.1.6"
+SYSC_DEB_URL="https://github.com/Nomadcxx/sysc-greet/releases/download/v${SYSC_VERSION}/sysc-greet_${SYSC_VERSION}_amd64.deb"
+
+# Required groups for GPU, input access, and PAM compatibility
+REQUIRED_GROUPS="video render input users"
+
+# =============================================================================
+# MAIN SCRIPT
+# ==============================================================================
+
 case "$1" in
     configure)
+        # --- JetBrainsMono Nerd Font Installation ---
         if fc-list | grep -qi "JetBrainsMono Nerd"; then
             echo "postinst: JetBrainsMono Nerd Font already installed, skipping download."
-        else
-            if command -v wget >/dev/null 2>&1; then
-                echo "postinst: JetBrainsMono Nerd Font not found, installing..."
-                mkdir -p "$FONT_DIR"
-
-                # Use mktemp to avoid /tmp symlink attack (CVE class: TOCTOU race)
-                FONT_ZIP_TMP="$(mktemp /tmp/JetBrainsMono.XXXXXX.zip)"
-
-                echo "postinst: downloading JetBrainsMono.zip from GitHub Releases..."
-                wget -q --tries=3 -O "$FONT_ZIP_TMP" "$FONT_ZIP_URL" || {
-                    echo "postinst: WARNING: font download failed (network unavailable?). Waybar icon glyphs may not render correctly."
-                    echo "postinst: To install manually later: dpkg-reconfigure ybarojs-debian"
-                    rm -f "$FONT_ZIP_TMP"
-                    FONT_ZIP_TMP=""
-                    true
-                }
-
-                if [ -n "$FONT_ZIP_TMP" ] && [ -f "$FONT_ZIP_TMP" ]; then
-                    echo "postinst: extracting .ttf files to $FONT_DIR..."
-                    unzip -o -q "$FONT_ZIP_TMP" '*.ttf' -d "$FONT_DIR" || true
-
-                    echo "postinst: cleaning up temporary zip..."
-                    rm -f "$FONT_ZIP_TMP"
-
-                    echo "postinst: rebuilding font cache for $FONT_DIR..."
-                    fc-cache -f "$FONT_DIR" || true
-
-                    echo "postinst: JetBrainsMono Nerd Font installed successfully."
-                fi
+        elif command -v wget >/dev/null 2>&1; then
+            echo "postinst: JetBrainsMono Nerd Font not found, installing..."
+            mkdir -p "$FONT_DIR"
+            FONT_ZIP_TMP="$(mktemp /tmp/JetBrainsMono.XXXXXX.zip)"
+            
+            if wget -q --tries=3 -O "$FONT_ZIP_TMP" "$FONT_ZIP_URL"; then
+                unzip -o -q "$FONT_ZIP_TMP" '*.ttf' -d "$FONT_DIR" || true
+                rm -f "$FONT_ZIP_TMP"
+                fc-cache -f "$FONT_DIR" || true
+                echo "postinst: JetBrainsMono Nerd Font installed successfully."
             else
-                echo "postinst: WARNING: wget not found. Cannot download JetBrainsMono Nerd Font."
-                echo "postinst: Install wget and run: dpkg-reconfigure ybarojs-debian"
+                echo "postinst: WARNING: Font download failed. Waybar icon glyphs may not render correctly."
+                rm -f "$FONT_ZIP_TMP"
             fi
+        else
+            echo "postinst: WARNING: wget not found. Cannot download JetBrainsMono Nerd Font."
         fi
 
         echo "postinst: rebuilding system font cache..."
         fc-cache -f || true
 
-        # Download and install impala WiFi management tool
-        echo ""
-        echo "postinst: ==============================================="
-        echo "postinst: Installing impala WiFi management tool"
-        echo "postinst: ==============================================="
-
-        IMPALA_DIR="/usr/local/bin"
-        IMPALA_BIN="${IMPALA_DIR}/impala"
-        IMPALA_API_URL="https://api.github.com/repos/pythops/impala/releases/latest"
+        # --- Impala WiFi Management Tool ---
+        print_banner "Installing impala WiFi management tool"
 
         if [ -f "$IMPALA_BIN" ]; then
             echo "postinst: impala already installed, skipping download."
-        else
-            if command -v wget >/dev/null 2>&1 || command -v curl >/dev/null 2>&1; then
-                echo "postinst: Downloading latest impala release..."
-                
-                # Get download URL from GitHub API
-                if command -v curl >/dev/null 2>&1; then
-                    IMPALA_URL=$(curl -sL "$IMPALA_API_URL" | grep -o '"browser_download_url": "[^"]*x86_64-unknown-linux-musl"' | head -n 1 | cut -d'"' -f4)
+        elif check_downloader; then
+            IMPALA_URL=$(download_file "$IMPALA_API_URL" "" "true" | grep -o '"browser_download_url": "[^"]*x86_64-unknown-linux-musl"' | head -n 1 | cut -d'"' -f4)
+            
+            if [ -n "$IMPALA_URL" ]; then
+                mkdir -p "$IMPALA_DIR"
+                if download_file "$IMPALA_URL" "$IMPALA_BIN"; then
+                    chmod +x "$IMPALA_BIN"
+                    echo "postinst: impala installed successfully to $IMPALA_BIN"
+                    echo "postinst: Run 'impala' to manage WiFi networks (requires iwd)."
                 else
-                    IMPALA_URL=$(wget -qO- "$IMPALA_API_URL" | grep -o '"browser_download_url": "[^"]*x86_64-unknown-linux-musl"' | head -n 1 | cut -d'"' -f4)
-                fi
-
-                if [ -n "$IMPALA_URL" ]; then
-                    mkdir -p "$IMPALA_DIR"
-                    
-                    if command -v curl >/dev/null 2>&1; then
-                        curl -sL "$IMPALA_URL" -o "$IMPALA_BIN" 2>/dev/null || true
-                    else
-                        wget -q "$IMPALA_URL" -O "$IMPALA_BIN" 2>/dev/null || true
-                    fi
-
-                    if [ -f "$IMPALA_BIN" ] && [ -s "$IMPALA_BIN" ]; then
-                        chmod +x "$IMPALA_BIN"
-                        echo "postinst: impala installed successfully to $IMPALA_BIN"
-                        echo "postinst: Run 'impala' to manage WiFi networks (requires iwd)."
-                    else
-                        echo "postinst: WARNING: impala download failed. WiFi management will not be available."
-                        echo "postinst: To install manually later, visit: https://github.com/pythops/impala"
-                        rm -f "$IMPALA_BIN"
-                    fi
-                else
-                    echo "postinst: WARNING: Could not find impala download URL."
-                    echo "postinst: You can install it manually from: https://github.com/pythops/impala"
+                    echo "postinst: WARNING: impala download failed. WiFi management will not be available."
+                    rm -f "$IMPALA_BIN"
                 fi
             else
-                echo "postinst: WARNING: Neither curl nor wget available. Cannot download impala."
-                echo "postinst: Install curl or wget, then reinstall this package."
+                echo "postinst: WARNING: Could not find impala download URL."
+                echo "postinst: You can install it manually from: https://github.com/pythops/impala"
             fi
+        else
+            echo "postinst: WARNING: Neither curl nor wget available. Cannot download impala."
+            echo "postinst: Install curl or wget, then reinstall this package."
         fi
 
-        echo "postinst: ==============================================="
-        echo ""
-
-        # Download and install sysc-greet display manager greeter
-        echo ""
-        echo "postinst: ==============================================="
-        echo "postinst: Installing sysc-greet display manager greeter"
-        echo "postinst: ==============================================="
-
-        SYSC_BIN="/usr/local/bin/sysc-greet"
-        SYSC_SHARE_DIR="/usr/local/share/sysc-greet"
-        SYSC_VERSION="1.1.6"
-        SYSC_DEB_URL="https://github.com/Nomadcxx/sysc-greet/releases/download/v${SYSC_VERSION}/sysc-greet_${SYSC_VERSION}_amd64.deb"
+        # --- sysc-greet Display Manager Greeter ---
+        print_banner "Installing sysc-greet display manager greeter"
 
         if [ -f "$SYSC_BIN" ]; then
             echo "postinst: sysc-greet already installed, skipping download."
-        else
-            if command -v wget >/dev/null 2>&1 || command -v curl >/dev/null 2>&1; then
-                echo "postinst: Downloading sysc-greet v${SYSC_VERSION}..."
+        elif check_downloader; then
+            echo "postinst: Downloading sysc-greet v${SYSC_VERSION}..."
+            SYSC_TMP_DIR="$(mktemp -d /tmp/sysc-greet.XXXXXX)"
+            SYSC_DEB_FILE="${SYSC_TMP_DIR}/sysc-greet.deb"
 
-                # Create temp directory for extraction
-                SYSC_TMP_DIR="$(mktemp -d /tmp/sysc-greet.XXXXXX)"
-                SYSC_DEB_FILE="${SYSC_TMP_DIR}/sysc-greet.deb"
-
-                # Download the deb package
-                if command -v curl >/dev/null 2>&1; then
-                    curl -sL "$SYSC_DEB_URL" -o "$SYSC_DEB_FILE" 2>/dev/null || true
-                else
-                    wget -q "$SYSC_DEB_URL" -O "$SYSC_DEB_FILE" 2>/dev/null || true
-                fi
-
-                if [ -f "$SYSC_DEB_FILE" ] && [ -s "$SYSC_DEB_FILE" ]; then
-                    echo "postinst: Extracting sysc-greet from deb package..."
-
-                    # Extract the deb package
-                    dpkg-deb -x "$SYSC_DEB_FILE" "$SYSC_TMP_DIR/extracted" 2>/dev/null || {
-                        echo "postinst: WARNING: Failed to extract sysc-greet deb package."
-                        rm -rf "$SYSC_TMP_DIR"
-                    }
-
-                    # Install the binary (it's in usr/local/bin in the upstream deb)
+            if download_file "$SYSC_DEB_URL" "$SYSC_DEB_FILE"; then
+                echo "postinst: Extracting sysc-greet from deb package..."
+                
+                if dpkg-deb -x "$SYSC_DEB_FILE" "$SYSC_TMP_DIR/extracted" 2>/dev/null; then
                     if [ -f "$SYSC_TMP_DIR/extracted/usr/local/bin/sysc-greet" ]; then
+                        # Install binary
                         mkdir -p "$(dirname "$SYSC_BIN")"
                         cp "$SYSC_TMP_DIR/extracted/usr/local/bin/sysc-greet" "$SYSC_BIN"
                         chmod +x "$SYSC_BIN"
                         echo "postinst: sysc-greet binary installed to $SYSC_BIN"
 
-                        # Install data files (ASCII configs, fonts, wallpapers)
+                        # Install data files
                         if [ -d "$SYSC_TMP_DIR/extracted/usr/share/sysc-greet" ]; then
                             mkdir -p "$SYSC_SHARE_DIR"
                             cp -r "$SYSC_TMP_DIR/extracted/usr/share/sysc-greet/"* "$SYSC_SHARE_DIR/"
                             echo "postinst: sysc-greet data files installed to $SYSC_SHARE_DIR"
                         fi
 
-                        # Create greeter user for sysc-greet if it doesn't exist
+                        # Create greeter user with all required groups
                         if ! id "greeter" >/dev/null 2>&1; then
-                            echo "postinst: Creating greeter user for sysc-greet..."
-                            # Add to users group as well for PAM compatibility
+                            echo "postinst: Creating greeter user..."
                             useradd -M -G video,render,input,users -s /usr/sbin/nologin greeter 2>/dev/null || \
                             useradd -M -G video,render,input -s /usr/sbin/nologin greeter 2>/dev/null || \
                             useradd -M -G video -s /usr/sbin/nologin greeter 2>/dev/null || \
                             useradd -M -s /usr/sbin/nologin greeter 2>/dev/null || {
-                                echo "postinst: WARNING: Could not create greeter user. greetd may not work properly."
+                                echo "postinst: WARNING: Could not create greeter user."
                             }
                         fi
 
-                        # Ensure greeter is in all required groups (in case user already existed)
-                        for group in video render input users; do
-                            if getent group "$group" >/dev/null 2>&1; then
-                                usermod -aG "$group" greeter 2>/dev/null || true
-                            fi
-                        done
+                        # Ensure greeter has all required groups
+                        add_user_to_groups greeter $REQUIRED_GROUPS
 
-                        # Create cache and lib directories for greeter with proper permissions
+                        # Setup cache directory
                         mkdir -p /var/cache/sysc-greet
                         chown -R greeter:greeter /var/cache/sysc-greet 2>/dev/null || true
                         chmod 755 /var/cache/sysc-greet 2>/dev/null || true
 
                         echo "postinst: sysc-greet installed successfully."
-                        echo "postinst: Note: Please restart greetd to apply changes: systemctl restart greetd"
+                        echo "postinst: Note: Please restart greetd: systemctl restart greetd"
                     else
-                        echo "postinst: WARNING: sysc-greet binary not found in extracted package."
+                        echo "postinst: WARNING: sysc-greet binary not found in package."
                     fi
-
-                    # Cleanup temp directory
-                    rm -rf "$SYSC_TMP_DIR"
                 else
-                    echo "postinst: WARNING: sysc-greet download failed. Display manager greeter may not work."
-                    echo "postinst: You can install it manually from: https://github.com/Nomadcxx/sysc-greet"
-                    rm -rf "$SYSC_TMP_DIR"
+                    echo "postinst: WARNING: Failed to extract sysc-greet package."
                 fi
+                rm -rf "$SYSC_TMP_DIR"
             else
-                echo "postinst: WARNING: Neither curl nor wget available. Cannot download sysc-greet."
-                echo "postinst: Install curl or wget, then reinstall this package."
+                echo "postinst: WARNING: sysc-greet download failed."
+                echo "postinst: You can install manually from: https://github.com/Nomadcxx/sysc-greet"
+                rm -rf "$SYSC_TMP_DIR"
             fi
+        else
+            echo "postinst: WARNING: Neither curl nor wget available. Cannot download sysc-greet."
         fi
 
-        echo "postinst: ==============================================="
-        echo ""
-
-        # Prompt for username to add to sudo group
-        echo ""
-        echo "postinst: ==============================================="
-        echo "postinst: Optional: Add a user to the sudo group"
-        echo "postinst: ==============================================="
+        # --- User Setup ---
+        print_banner "Optional: Add a user to the sudo group"
 
         SUDO_USERNAME=""
-
-        # Try debconf first (standard Debian way), fallback to read
         if command -v debconf >/dev/null 2>&1; then
-            # Try to get username from debconf
             SUDO_USERNAME="$(debconf-show ybarojs-debian 2>/dev/null | grep 'ybarojs-debian/sudo-username' | sed 's/.*: //')" || true
         fi
 
-        # If debconf didn't provide a username, prompt interactively
-        if [ -z "$SUDO_USERNAME" ]; then
-            # Only prompt if we have a terminal (not during non-interactive installs)
-            if [ -t 0 ] && [ -t 1 ]; then
-                printf "postinst: Enter username to add to sudo group (leave empty to skip): "
-                read -r SUDO_USERNAME || true
-            fi
+        # Prompt interactively if no debconf value and terminal is available
+        if [ -z "$SUDO_USERNAME" ] && [ -t 0 ] && [ -t 1 ]; then
+            printf "postinst: Enter username to add to groups (leave empty to skip): "
+            read -r SUDO_USERNAME || true
         fi
 
-        # Process the username if provided
         if [ -n "$SUDO_USERNAME" ]; then
-            # Validate that the user exists
             if id "$SUDO_USERNAME" >/dev/null 2>&1; then
-                echo "postinst: Adding user '$SUDO_USERNAME' to sudo group..."
+                # Add to sudo group
                 if usermod -aG sudo "$SUDO_USERNAME" 2>/dev/null; then
-                    echo "postinst: User '$SUDO_USERNAME' successfully added to sudo group."
+                    echo "postinst: User '$SUDO_USERNAME' added to sudo group."
                 else
-                    echo "postinst: WARNING: Failed to add user to sudo group. Run manually: usermod -aG sudo $SUDO_USERNAME"
+                    echo "postinst: WARNING: Failed to add user to sudo group."
                 fi
 
-                # Add user to video, render, input groups for GPU and input access
-                # These are required for Sway/Wayland to work properly
-                echo "postinst: Adding user '$SUDO_USERNAME' to video, render, input groups..."
-                for group in video render input; do
-                    if getent group "$group" >/dev/null 2>&1; then
-                        if usermod -aG "$group" "$SUDO_USERNAME" 2>/dev/null; then
-                            echo "postinst: User added to '$group' group."
-                        else
-                            echo "postinst: WARNING: Failed to add user to '$group' group."
-                        fi
-                    fi
-                done
-                echo "postinst: User must log out and back in for all group changes to take effect."
+                # Add to hardware access groups (required for Sway/Wayland)
+                echo "postinst: Adding user to video, render, input groups..."
+                add_user_to_groups "$SUDO_USERNAME" video render input
+                echo "postinst: User must log out and back in for group changes to take effect."
             else
-                echo "postinst: WARNING: User '$SUDO_USERNAME' does not exist. Skipping user setup."
-                echo "postinst: Create the user first, then run the setup manually."
+                echo "postinst: WARNING: User '$SUDO_USERNAME' does not exist. Skipping."
             fi
         else
-            echo "postinst: No username provided. Skipping user group setup."
-            echo "postinst: To add a user later, run: usermod -aG sudo,video,render,input <username>"
+            echo "postinst: No username provided. Skipping user setup."
+            echo "postinst: To add later: usermod -aG sudo,video,render,input <username>"
         fi
 
-        echo "postinst: ==============================================="
-        echo ""
-
-        # Ensure greeter user has all required groups
-        echo ""
-        echo "postinst: ==============================================="
-        echo "postinst: Setting up greeter user permissions"
-        echo "postinst: ==============================================="
+        # --- Greeter User Permissions ---
+        print_banner "Setting up greeter user permissions"
 
         if id "greeter" >/dev/null 2>&1; then
-            for group in video render input users; do
-                if getent group "$group" >/dev/null 2>&1; then
-                    usermod -aG "$group" "greeter" 2>/dev/null || true
-                fi
-            done
+            add_user_to_groups greeter $REQUIRED_GROUPS
             echo "postinst: greeter user permissions configured."
         else
-            echo "postinst: WARNING: greeter user does not exist. Greetd may not work properly."
+            echo "postinst: WARNING: greeter user does not exist."
         fi
 
-        echo "postinst: ==============================================="
-        echo ""
+        # --- Enable iwd Service ---
+        print_banner "Enabling iwd wireless service"
 
-        # Enable iwd service for wireless networking
-        echo ""
-        echo "postinst: ==============================================="
-        echo "postinst: Enabling iwd wireless service"
-        echo "postinst: ==============================================="
-
-        if command -v systemctl >/dev/null 2>&1; then
-            if systemctl enable iwd 2>/dev/null; then
-                echo "postinst: iwd service enabled successfully."
-                echo "postinst: iwd will start automatically on next boot."
-            else
-                echo "postinst: WARNING: Could not enable iwd service."
-                echo "postinst: You may need to enable it manually: systemctl enable iwd"
-            fi
+        if command -v systemctl >/dev/null 2>&1 && systemctl enable iwd 2>/dev/null; then
+            echo "postinst: iwd service enabled successfully."
+            echo "postinst: iwd will start automatically on next boot."
         else
-            echo "postinst: WARNING: systemctl not found. Cannot enable iwd service."
+            echo "postinst: WARNING: Could not enable iwd service."
+            echo "postinst: You may need to enable manually: systemctl enable iwd"
         fi
 
-        echo "postinst: ==============================================="
-        echo ""
-
-        # Show help message for custom PS1 prompt
+        # --- Colored Prompt Help ---
         echo ""
         echo "=========================================="
         echo "  Optional: Enable Colored Bash Prompt"
