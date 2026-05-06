@@ -12,6 +12,7 @@
     ],
     "modules-right": [
         "power-profiles-daemon",
+        "custom/updates",
         "pulseaudio",
         "network",
         "cpu",
@@ -125,5 +126,14 @@
             "car": "CAR",
             "default": ["VOL", "VOL", "VOL"]
         }
+    },
+
+    "custom/updates": {
+        "format": "<span weight=\"bold\">UPT </span>{}",
+        "interval": 300,
+        "exec": "/usr/local/bin/ybarojs-update-check",
+        "return-type": "json",
+        "on-click": "foot -e sh -c 'echo \"Firmware updates:\"; fwupdmgr get-updates 2>/dev/null || echo \"No fwupdmgr available\"; echo \"\"; echo \"Package updates:\"; apt list --upgradable 2>/dev/null; echo \"\"; echo \"Press Enter to close...\"; read'",
+        "tooltip": true
     }
 }
