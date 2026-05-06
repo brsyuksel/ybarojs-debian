@@ -21,7 +21,8 @@ A Debian meta-package providing a complete Wayland desktop environment based on 
 - **Git** — Version control system (included as dependency)
 - **Wireless Networking** — iwd wireless daemon with automatic service enable
 - **WiFi Management** — impala TUI for managing wireless networks (downloaded during install)
-- **Optional Colored Prompt** — Post-installation help message to add beautiful colored PS1 to your terminal
+- **Update Reminder** — Waybar module showing available firmware and package updates (UPT indicator)
+- **Colored Bash Prompt** — Helper script to set up a beautiful colored PS1 in your terminal
 
 ## Dependencies
 
@@ -31,10 +32,11 @@ The following packages are automatically installed:
 - `iwd` — Wireless networking daemon
 - `sudo` — User privilege escalation
 - `sway` — Tiling Wayland compositor
-- `waybar` — Status bar
+- `waybar` — Status bar with update reminder module
 - `tofi` — Application launcher
 - `greetd` — Minimal display manager
 - `foot` — Terminal emulator for running sysc-greet
+- `fwupd` — Firmware update daemon (for update reminder)
 - `fonts-jetbrains-mono` — Primary UI font
 - `fonts-noto-core` — Unicode coverage fonts
 - `wireplumber` — PipeWire session manager
@@ -98,6 +100,113 @@ Configuration files are installed system-wide for all users:
 | Nerd Fonts | `/usr/share/fonts/` |
 
 User-specific overrides can be placed in `~/.config/` following standard XDG conventions.
+
+## Helper Scripts
+
+The package includes several helper scripts installed to `/usr/local/bin/` and `/usr/local/share/ybarojs-debian/`:
+
+| Script | Location | Purpose |
+|--------|----------|---------|
+| `ybarojs-update-check` | `/usr/local/bin/` | Checks for firmware and package updates (used by waybar) |
+| `setup-colorful-prompt.sh` | `/usr/local/share/ybarojs-debian/` | Sets up colored bash prompt in `~/.bashrc` |
+| `impala` | `/usr/local/bin/` | WiFi management TUI (downloaded during install) |
+
+## Features in Detail
+
+### Update Reminder (Waybar)
+
+The waybar includes an **UPT** (updates) module that shows the total count of available firmware and package updates:
+
+- **Display**: Shows `UPT <count>` in the status bar
+- **Tooltip**: Hover to see breakdown: `firmware: X, packages: Y`
+- **Click**: Opens a terminal showing detailed update information
+- **Update interval**: Every 5 minutes
+
+The module checks:
+- Firmware updates via `fwupdmgr`
+- Package updates via `apt list --upgradable`
+
+**Note**: On VMs (QEMU, VirtualBox, etc.), firmware checks are skipped to prevent hangs.
+
+### Colored Bash Prompt
+
+To enable a beautiful colored bash prompt with username, hostname, directory, and exit code:
+
+```bash
+/usr/local/share/ybarojs-debian/setup-colorful-prompt.sh
+source ~/.bashrc
+```
+
+This will give you:
+- 🟢 **Green**: username@hostname
+- 🔵 **Blue**: current directory
+- 🟡 **Yellow**: exit code of last command
+
+### WiFi Management (impala)
+
+After installation, use the `impala` command to manage WiFi networks:
+
+```bash
+impala
+```
+
+A TUI interface will open for connecting to wireless networks using iwd.
+
+## Post-Installation Steps
+
+1. **Enable and start greetd** (if not already running):
+   ```bash
+   sudo systemctl enable --now greetd
+   ```
+
+2. **Log out and back in** (or reboot) to apply group memberships:
+   - Your user is added to `sudo`, `video`, `render`, and `input` groups
+   - These are required for Sway/Wayland to access GPU and input devices
+
+3. **Enable colored prompt** (optional):
+   ```bash
+   /usr/local/share/ybarojs-debian/setup-colorful-prompt.sh
+   source ~/.bashrc
+   ```
+
+4. **Check for updates** anytime by clicking the **UPT** indicator in waybar
+
+## Troubleshooting
+
+### Sway crashes after login
+
+If Sway crashes ~20 seconds after logging in through sysc-greet:
+
+1. Ensure your user is in the required groups:
+   ```bash
+   groups $USER
+   ```
+   
+   You should see: `video`, `render`, `input`, `sudo`
+
+2. If groups are missing, add them:
+   ```bash
+   sudo usermod -aG video,render,input,sudo $USER
+   ```
+
+3. **Log out completely** and log back in for group changes to take effect
+
+### No WiFi networks showing
+
+Ensure the iwd service is running:
+```bash
+sudo systemctl status iwd
+sudo systemctl start iwd
+```
+
+### Update reminder not showing in waybar
+
+Check if the script works manually:
+```bash
+/usr/local/bin/ybarojs-update-check
+```
+
+If you see errors, ensure `fwupd` and `apt` are installed and you have internet connectivity.
 
 ## CI/CD
 
