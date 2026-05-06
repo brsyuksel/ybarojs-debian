@@ -4,8 +4,8 @@ Section: misc
 Priority: optional
 Architecture: amd64
 Maintainer: ybaroj <ybaroj@localhost>
-Depends: sudo, git, iwd, sway, waybar, tofi, greetd, wlgreet, fonts-jetbrains-mono, fonts-noto-core, wireplumber, pipewire-pulse, unzip
-Replaces: sway, waybar, tofi, greetd, wlgreet
+Depends: sudo, git, iwd, sway, waybar, tofi, greetd, fonts-jetbrains-mono, fonts-noto-core, wireplumber, pipewire-pulse, unzip
+Replaces: sway, waybar, tofi, greetd
 Conflicts: fonts-font-awesome
 Description: Sway window manager meta-package with Catppuccin theme
  Meta-package providing a complete Wayland desktop environment
@@ -18,7 +18,7 @@ Description: Sway window manager meta-package with Catppuccin theme
   - iwd wireless networking daemon with auto-enable
   - impala WiFi management tool (TUI for iwd)
   - Tofi application launcher
-  - Greetd display manager with wlgreet and themed login
+  - Greetd display manager with sysc-greet and themed login
   - System-wide configuration in /etc/xdg/ and /etc/greetd/
   - Automatic JetBrainsMono Nerd Font installation
   - Interactive sudo user setup during installation
