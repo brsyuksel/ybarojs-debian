@@ -307,18 +307,18 @@ case "$1" in
         echo "  Optional: Enable Colored Bash Prompt"
         echo "=========================================="
         echo ""
-        echo "To add a beautiful colored prompt to your terminal, run:"
+        echo "A helper script is available at:"
+        echo "  /usr/local/share/ybarojs-debian/setup-colorful-prompt.sh"
         echo ""
-        cat << 'PROMPT_CMD'
-  echo 'export PS1="\[\e[1;32m\]\u@\h\[\e[m\]:\[\e[1;34m\]\w\[\e[m\] [\[\e[1;33m\]\$?\[\e[m\]]\$ "' >> ~/.bashrc
-PROMPT_CMD
+        echo "To enable the colorful prompt, run in a terminal:"
+        echo "  /usr/local/share/ybarojs-debian/setup-colorful-prompt.sh"
         echo ""
         echo "This will give you:"
         echo "  🟢 Green: username@hostname"
         echo "  🔵 Blue: current directory"
         echo "  🟡 Yellow: exit code of last command"
         echo ""
-        echo "Then run: source ~/.bashrc"
+        echo "After running the script, execute: source ~/.bashrc"
         echo ""
         ;;
 esac
