@@ -104,6 +104,75 @@ case "$1" in
         echo "postinst: ==============================================="
         echo ""
 
+        # Download and install yazi terminal file manager
+        echo ""
+        echo "postinst: ==============================================="
+        echo "postinst: Installing yazi terminal file manager"
+        echo "postinst: ==============================================="
+
+        YAZI_DIR="/usr/local/bin"
+        YAZI_BIN="${YAZI_DIR}/yazi"
+        YAZI_API_URL="https://api.github.com/repos/sxyazi/yazi/releases/latest"
+
+        if [ -f "$YAZI_BIN" ]; then
+            echo "postinst: yazi already installed, skipping download."
+        else
+            if command -v wget >/dev/null 2>&1 || command -v curl >/dev/null 2>&1; then
+                echo "postinst: Downloading latest yazi release..."
+
+                # Get download URL from GitHub API
+                if command -v curl >/dev/null 2>&1; then
+                    YAZI_URL=$(curl -sL "$YAZI_API_URL" | grep -o '"browser_download_url": "[^"]*yazi-x86_64-unknown-linux-musl.zip"' | head -n 1 | cut -d'"' -f4)
+                else
+                    YAZI_URL=$(wget -qO- "$YAZI_API_URL" | grep -o '"browser_download_url": "[^"]*yazi-x86_64-unknown-linux-musl.zip"' | head -n 1 | cut -d'"' -f4)
+                fi
+
+                if [ -n "$YAZI_URL" ]; then
+                    # Create temp directory for extraction
+                    YAZI_TMP_DIR="$(mktemp -d /tmp/yazi.XXXXXX)"
+                    YAZI_ZIP_FILE="${YAZI_TMP_DIR}/yazi.zip"
+
+                    if command -v curl >/dev/null 2>&1; then
+                        curl -sL "$YAZI_URL" -o "$YAZI_ZIP_FILE" 2>/dev/null || true
+                    else
+                        wget -q "$YAZI_URL" -O "$YAZI_ZIP_FILE" 2>/dev/null || true
+                    fi
+
+                    if [ -f "$YAZI_ZIP_FILE" ] && [ -s "$YAZI_ZIP_FILE" ]; then
+                        echo "postinst: Extracting yazi archive..."
+                        unzip -o -q "$YAZI_ZIP_FILE" -d "$YAZI_TMP_DIR" || true
+
+                        # Find the yazi binary in extracted contents
+                        YAZI_EXTRACTED_BIN="$(find "$YAZI_TMP_DIR" -name 'yazi' -type f | head -n 1)"
+
+                        if [ -n "$YAZI_EXTRACTED_BIN" ]; then
+                            mkdir -p "$YAZI_DIR"
+                            cp "$YAZI_EXTRACTED_BIN" "$YAZI_BIN"
+                            chmod +x "$YAZI_BIN"
+                            echo "postinst: yazi installed successfully to $YAZI_BIN"
+                            echo "postinst: Run 'yazi' to launch the terminal file manager."
+                        else
+                            echo "postinst: WARNING: yazi binary not found in extracted archive."
+                        fi
+                    else
+                        echo "postinst: WARNING: yazi download failed. Terminal file manager will not be available."
+                        echo "postinst: You can install it manually from: https://github.com/sxyazi/yazi"
+                    fi
+
+                    rm -rf "$YAZI_TMP_DIR"
+                else
+                    echo "postinst: WARNING: Could not find yazi download URL."
+                    echo "postinst: You can install it manually from: https://github.com/sxyazi/yazi"
+                fi
+            else
+                echo "postinst: WARNING: Neither curl nor wget available. Cannot download yazi."
+                echo "postinst: Install curl or wget, then reinstall this package."
+            fi
+        fi
+
+        echo "postinst: ==============================================="
+        echo ""
+
         # Download and install sysc-greet display manager greeter
         echo ""
         echo "postinst: ==============================================="

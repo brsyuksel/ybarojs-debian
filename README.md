@@ -21,6 +21,7 @@ A Debian meta-package providing a complete Wayland desktop environment based on 
 - **Git** — Version control system (included as dependency)
 - **Wireless Networking** — iwd wireless daemon with automatic service enable
 - **WiFi Management** — impala TUI for managing wireless networks (downloaded during install)
+- **Terminal File Manager** — yazi TUI file manager (downloaded during install)
 - **Update Reminder** — Waybar module showing available firmware and package updates (UPD indicator)
 - **Colored Bash Prompt** — Helper script to set up a beautiful colored PS1 in your terminal
 
@@ -112,6 +113,7 @@ The package includes several helper scripts installed to `/usr/local/bin/` and `
 | `ybarojs-update-check` | `/usr/local/bin/` | Checks for firmware and package updates (used by waybar) |
 | `setup-colorful-prompt.sh` | `/usr/local/share/ybarojs-debian/` | Sets up colored bash prompt in `~/.bashrc` |
 | `impala` | `/usr/local/bin/` | WiFi management TUI (downloaded during install) |
+| `yazi` | `/usr/local/bin/` | Terminal file manager TUI (downloaded during install) |
 
 ## Features in Detail
 
@@ -153,6 +155,16 @@ impala
 ```
 
 A TUI interface will open for connecting to wireless networks using iwd.
+
+### Terminal File Manager (yazi)
+
+After installation, use the `yazi` command to launch the terminal file manager:
+
+```bash
+yazi
+```
+
+A TUI interface will open for browsing and managing files.
 
 ## Post-Installation Steps
 
