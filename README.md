@@ -2,7 +2,7 @@
 
 A Debian meta-package providing a complete Wayland desktop environment based on the Sway tiling window manager, featuring custom Catppuccin Mocha themed configurations.
 
-**Architecture:** amd64 (x86_64) - Required for impala WiFi management binary
+**Architecture:** amd64 (x86_64) - Required for impala and yazi precompiled binaries
 
 ## Overview
 
@@ -34,6 +34,8 @@ The following packages are automatically installed:
 - `dhcpcd` — DHCP client for network configuration
 - `sudo` — User privilege escalation
 - `sway` — Tiling Wayland compositor
+- `brightnessctl` — Backlight and LED brightness control
+- `grim` — Wayland screenshot utility
 - `waybar` — Status bar with update reminder module
 - `tofi` — Application launcher
 - `greetd` — Minimal display manager
@@ -99,6 +101,7 @@ Configuration files are installed system-wide for all users:
 | Sway config | `/etc/xdg/sway/` |
 | Waybar config | `/etc/xdg/waybar/` |
 | Tofi config | `/etc/xdg/tofi/` |
+| Foot config | `/etc/xdg/foot/` |
 | Greetd config | `/etc/greetd/` |
 | Nerd Fonts | `/usr/share/fonts/` |
 
