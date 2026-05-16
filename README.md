@@ -30,6 +30,7 @@ The following packages are automatically installed:
 
 - `git` — Version control system
 - `iwd` — Wireless networking daemon
+- `dhcpcd` — DHCP client for network configuration
 - `sudo` — User privilege escalation
 - `sway` — Tiling Wayland compositor
 - `waybar` — Status bar with update reminder module
@@ -41,6 +42,7 @@ The following packages are automatically installed:
 - `fonts-noto-core` — Unicode coverage fonts
 - `wireplumber` — PipeWire session manager
 - `pipewire-pulse` — PulseAudio replacement
+- `power-profiles-daemon` — Power profile management (balanced/performance/powersaver)
 - `unzip` — Archive extraction utility
 
 ## Installation
