@@ -117,7 +117,7 @@ Configuration files are installed system-wide for all users:
 | Tofi config | `/etc/xdg/tofi/` |
 | Foot config | `/etc/xdg/foot/` |
 | Greetd config | `/etc/greetd/` |
-| Nerd Fonts | `/usr/share/fonts/` |
+| Nerd Fonts | `/usr/local/share/fonts/nerd-fonts/JetBrainsMono/` |
 
 User-specific overrides can be placed in `~/.config/` following standard XDG conventions.
 
