@@ -4,7 +4,7 @@ Section: misc
 Priority: optional
 Architecture: amd64
 Maintainer: ybaroj <ybaroj@localhost>
-Depends: sudo, git, iwd, dhcpcd, sway, waybar, tofi, greetd, foot, fwupd, fonts-jetbrains-mono, fonts-noto-core, wireplumber, pipewire-pulse, power-profiles-daemon, unzip
+Depends: sudo, git, iwd, dhcpcd, sway, brightnessctl, waybar, tofi, greetd, foot, fwupd, fonts-jetbrains-mono, fonts-noto-core, wireplumber, pipewire-pulse, power-profiles-daemon, unzip
 Replaces: sway, waybar, tofi, greetd
 Conflicts: fonts-font-awesome
 Description: Sway window manager meta-package with Catppuccin theme
