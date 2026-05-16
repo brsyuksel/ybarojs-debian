@@ -25,6 +25,20 @@ A Debian meta-package providing a complete Wayland desktop environment based on 
 - **Update Reminder** — Waybar module showing available firmware and package updates (UPD indicator)
 - **Colored Bash Prompt** — Helper script to set up a beautiful colored PS1 in your terminal
 
+## Screenshots
+
+### Desktop
+
+![Desktop](assets/screenshots/desktop.png)
+
+### Application Launcher (Tofi)
+
+![Launcher](assets/screenshots/launcher.png)
+
+### Tiling Windows
+
+![Tiling](assets/screenshots/tiling.png)
+
 ## Dependencies
 
 The following packages are automatically installed:
