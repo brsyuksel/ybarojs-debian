@@ -19,11 +19,8 @@ fi
 
 # Check firmware updates (with timeout to prevent hangs on VMs)
 FW_COUNT=0
-if command -v fwupdmgr >/dev/null 2>&1; then
-    FW_OUT=$(timeout 5 fwupdmgr get-updates 2>/dev/null)
-    if [ -n "$FW_OUT" ]; then
-        FW_COUNT=$(echo "$FW_OUT" | grep -c "^│" 2>/dev/null)
-    fi
+if command -v fwupdmgr >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+    FW_COUNT=$(timeout 5 fwupdmgr get-updates --json 2>/dev/null | jq '[.Devices[].Releases[]] | length' 2>/dev/null)
 fi
 
 # Check package updates

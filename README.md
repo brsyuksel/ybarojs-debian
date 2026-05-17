@@ -60,6 +60,7 @@ The following packages are automatically installed:
 - `wireplumber` — PipeWire session manager
 - `pipewire-pulse` — PulseAudio replacement
 - `power-profiles-daemon` — Power profile management (balanced/performance/powersaver)
+- `jq` — JSON processor (used by firmware update checker)
 - `unzip` — Archive extraction utility
 
 ## Installation
