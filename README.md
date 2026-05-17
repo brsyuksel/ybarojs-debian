@@ -62,6 +62,7 @@ The following packages are automatically installed:
 - `power-profiles-daemon` — Power profile management (balanced/performance/powersaver)
 - `jq` — JSON processor (used by firmware update checker)
 - `unzip` — Archive extraction utility
+- `curl` — URL transfer utility (used for downloading helper tools)
 
 ## Installation
 
