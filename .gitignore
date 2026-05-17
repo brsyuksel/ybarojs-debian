@@ -22,3 +22,6 @@ Thumbs.db
 # Misc
 .env
 .env.local
+
+# Agent instructions
+AGENTS.md
